@@ -1,4 +1,4 @@
-<img src="doc/logo.png"/>
+<img src="doc/logo.png" width="120"/>
 
 Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal
 Basically it's pm2 without the fat, using simply ```ps``` and ```flock```

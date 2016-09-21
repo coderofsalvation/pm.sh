@@ -1,7 +1,7 @@
 {
   "name": "pm.sh",
   "version": "1.0.0",
-  "description": "<img src=\"doc/logo.png\"/>",
+  "description": "pm2 without the fat, unix processmanagement using simply 'ps' and 'flock' and a teaspoon of shellscript & extra features",
   "main": "index.js",
   "directories": {
     "doc": "doc"
@@ -13,6 +13,18 @@
     "type": "git",
     "url": "git+https://github.com/coderofsalvation/pm.sh.git"
   },
+  "keywords": [
+    "pm2",
+    "pm.sh",
+    "nodemon",
+    "unix",
+    "process",
+    "lightweight",
+    "minimal",
+    "ps",
+    "process manager",
+    "process management"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

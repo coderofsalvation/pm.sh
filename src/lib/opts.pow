@@ -1,0 +1,28 @@
+scope=app
+cmd=help
+
+for arg in $@
+  switch $arg
+    case exec
+      scope=process
+      cmd=$arg
+      shift
+    case start
+      scope=process
+      cmd=$arg
+      shift
+    case stop
+      scope=process
+      cmd=$arg
+      shift
+    case restart
+      scope=process
+      cmd=$arg
+      shift
+    case status
+      scope=process
+      cmd=$arg
+      shift
+    case --force
+      runtime=sh
+      shift

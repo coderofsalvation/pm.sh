@@ -1,0 +1,16 @@
+pid=$$
+dependencies="flock awk date sleep ps head"
+
+require 'lib/opts.pow'
+require 'lib/process.pow'
+
+app:init()
+  for dep in dependencies
+    which $dep &>/dev/null || { echo "'$dep' is not installed (pm needs: $dependencies)" && exit 1; }
+
+app:help()
+  echo 'Usage:
+  pm start <cmd> [args] [..]
+  '
+
+app:init && $scope:$cmd "$@"

@@ -3,7 +3,7 @@ Application definition files
 
 Just like pm2, pm.sh uses application definition files.
 
-## Application definition-file: Custom
+## Custom
 
 Put a `app.sh` or `app.bash` in your projectdir:
 
@@ -12,7 +12,7 @@ Put a `app.sh` or `app.bash` in your projectdir:
     [[ -f app.bash.live ]] && source app.bash.live
     npm start
 
-## Application definition-file: Nodejs (package.json)
+## Nodejs (package.json)
 
 Put a `package.json` in your projectdir:
 

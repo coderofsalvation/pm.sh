@@ -1,11 +1,25 @@
 <img src="doc/logo.png" width="120"/>
 
 Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal
-Basically it's pm2 without the fat, using simply ```ps``` and ```flock```
+Basically it's pm2 without the fat written in bash, using simply ```ps``` and ```flock```
 
 ## Usage
 
     $ wget "http://sldfjlskdf" -O ~/bin/pm && chmod 755 ~/bin/pm
+    $ pm
+    Usage:                                                                                                          
+                                                                                                                    
+      pm init                                      create ~/.pm.conf.sh configfile                                  
+      pm status                                    show app(names) and their status                                 
+      pm add <appdir>                              add application(dir which contains application definition file)  
+      pm remove <appdir>                           remove application                                               
+      pm start <appname> [args] [..]               start app                                                        
+      pm stop <appname>                            stop  app                                                        
+                                                                                                                    
+                                                   ┌─────────────────────────────────────────────────┐              
+                                                   │ docs: https://github.com/coderofsalvation/pm.sh │              
+
+## Demo 
     $ pm init
     $ pm add ~/myapps/yourapp
     $ pm status
@@ -22,6 +36,7 @@ Basically it's pm2 without the fat, using simply ```ps``` and ```flock```
 * automatically restart process
 * forward stderr/stdout logs to separated error- and logfiles
 * forward stderr/stdout to syslog (if installed)
+* support for [Application Definition-files](doc/application-definition.md)
 * [TODO] app.sh support (native)
 * [TODO] forward log regex-matches + start/stop/restart-events to custom webhook
 * [TODO] forward log regex-matches + start/stop/restart-events to google analytics events
@@ -30,36 +45,6 @@ Basically it's pm2 without the fat, using simply ```ps``` and ```flock```
 * [TODO] app.json support
 * [TODO] composer.json support
 * [TODO] pm2.json support
-
-## Application definition-file: Custom
-
-Put a `app.sh` or `app.bash` in your projectdir:
-
-    #!/bin/bash
-    export MY_ENV_VAR=foobar
-    [[ -f app.bash.live ]] && source app.bash.live
-    npm start
-
-## Application definition-file: Nodejs (package.json)
-
-Put a `package.json` in your projectdir:
-
-    {
-      "scripts":{
-        "start": "{ source env.sh; source env.production.sh } 2>/dev/null ; source env.sh && node app.js"
-      }
-    }
-
-And also an `env.sh`:
-
-    export NODE_ENV=development
-    export DEBUG=foo,*http*
-
-And on a productionserver an `env.production.sh` too:
-
-    export NODE_ENV=production
-    export DEBUG=""
-    export PASSWORD=XXXXXXXX
 
 ## Why
 

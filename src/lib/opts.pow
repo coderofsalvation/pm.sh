@@ -23,6 +23,18 @@ for arg in $@
       scope=process
       cmd=$arg
       shift
+    case init
+      scope=apps
+      cmd=$arg
+      shift
+    case add
+      scope=apps
+      cmd=$arg
+      shift
+    case remove
+      scope=apps
+      cmd=$arg
+      shift
     case --force
       runtime=sh
       shift

@@ -1,0 +1,13 @@
+#!/bin/bash
+selfpath="$(dirname "$(readlink -f "$0")")"
+cd $selfpath
+
+# install powscript if needed
+which powscript 1>/dev/null 2>/dev/null && HAS_POW=1
+[[ -f powscript ]]                      && HAS_POW=1
+[[ ! -n $HAS_POW  ]] && wget "https://raw.githubusercontent.com/coderofsalvation/powscript/master/powscript" && chmod 755 powscript
+export PATH=$PATH:$selfpath/.tools
+
+# compile!
+powscript --compile ../src/pm.pow > ../bin/pm
+echo 'done'

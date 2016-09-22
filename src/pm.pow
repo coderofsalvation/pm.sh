@@ -1,16 +1,32 @@
+require_cmd 'flock'
+require_cmd 'awk'
+require_cmd 'date'
+require_cmd 'sleep'
+require_cmd 'ps'
+require_cmd 'head'
+
 pid=$$
-dependencies="flock awk date sleep ps head"
 
 require 'lib/opts.pow'
 require 'lib/process.pow'
+require 'lib/apps.pow'
 
 app:init()
   for dep in dependencies
     which $dep &>/dev/null || { echo "'$dep' is not installed (pm needs: $dependencies)" && exit 1; }
 
 app:help()
-  echo 'Usage:
-  pm start <cmd> [args] [..]
-  '
+  echo 'Usage:                                                                                                          '     
+  echo '                                                                                                                '
+  echo '  pm init                                      create ~/.pm.conf.sh configfile                                  '
+  echo '  pm status                                    show app(names) and their status                                 '
+  echo '  pm add <appdir>                              add application(dir which contains application definition file)  '
+  echo '  pm remove <appdir>                           remove application                                               '
+  echo '  pm start <appname> [args] [..]               start app                                                        '
+  echo '  pm stop <appname>                            stop  app                                                        '
+  echo '                                                                                                                '
+  echo '                                               ┌─────────────────────────────────────────────────┐              '
+  echo '                                               │ docs: https://github.com/coderofsalvation/pm.sh │              '
+  echo '                                                                                                                '
 
 app:init && $scope:$cmd "$@"

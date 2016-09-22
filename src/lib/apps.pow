@@ -1,0 +1,19 @@
+config_file=~/.pm.conf.sh
+tpl_config='
+declare -A apps
+apps=()
+'
+
+apps:init()
+  if -f $config_file
+    echo "error: $config_file already exist..are you sure? (if so, please delete it)"
+    exit 1
+  else
+    echo "$tpl_config" > $config_file
+ 
+apps:add(appdir)
+  echo add appdir=$appdir
+
+apps:remove(appdir)
+  echo remove appdir=$appdir
+   

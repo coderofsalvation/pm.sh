@@ -76,7 +76,7 @@ process:status(pname)
   cols="$(echo "$ps" | head -n1)"                        # print cols header
   printf "%-10s %-10s %s\n" "APP" "STATUS" "$cols"
   echo "$ps" | grep "flock.*pm\..*\.lock" >> $tmpfile.ps # print psdata
-  for lockfile in $(ls /tmp/.pm.*.lock)
+  for lockfile in ls /tmp/.pm.*.lock
     appname=${lockfile/*pm\./}
     appname=${appname/\.lock/}
     echo $appname

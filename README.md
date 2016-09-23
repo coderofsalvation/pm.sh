@@ -21,13 +21,17 @@ Basically it's pm2 without the fat written in bash, using simply ```ps``` and ``
     $ pm init
     $ pm add ~/myapps/yourapp
     $ pm status
-    no applications are running
+    APP        PID %CPU %MEM   PORT  RSS TTY      STAT START   TIME COMMAND
+    
+    yourapp                                                         
+    
     $ pm start yourapp
     $ pm restart yourapp
     $ pm stop  yourapp
     $ pm status
-    USER       PID %CPU %MEM   PORT  RSS TTY      STAT START   TIME COMMAND
-    sqz      22314  0.0  0.0   5800  1776 pts/2    S+   20:35   0:00 flock -w 1 /tmp/.pm.yourapp.lock npm start
+    APP        PID %CPU %MEM   PORT  RSS TTY      STAT START   TIME COMMAND
+    
+    yourapp  22314  0.0  0.0   5800  1776 pts/2    S+   20:35   0:00 flock -w 1 /tmp/.pm.yourapp.lock npm start
 
 ## Features
 

@@ -16,8 +16,6 @@ Basically it's pm2 without the fat written in bash, using simply ```ps``` and ``
       pm start <appname> [args] [..]               start app                                                        
       pm stop <appname>                            stop  app                                                        
                                                                                                                     
-                                                   ┌─────────────────────────────────────────────────┐              
-                                                   │ docs: https://github.com/coderofsalvation/pm.sh │              
 
 ## Demo 
     $ pm init

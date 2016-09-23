@@ -52,5 +52,5 @@ Basically it's pm2 without the fat written in bash, using simply ```ps``` and ``
 
 I love pm2 and other tools.
 However, I've lost a lot of time on managing problems which are actually solved in unix already.
-Instead of fiddling with upstart daemon-scripts, I wanted to keep the pm2 workflow, but using shellscript.
+Instead of fiddling with upstart daemon-scripts or pids, I wanted to keep the pm2 workflow, but using shellscript.
 Shellscript/unix is well designed to manage unix processes, pm2 and pm.sh is just a wrapper.

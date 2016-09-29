@@ -1,2 +1,6 @@
+language: node_js
 install: true
 script: ./.tools/runtests
+node_js:
+  - "4.1"
+

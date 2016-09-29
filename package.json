@@ -1,7 +1,7 @@
 {
   "name": "pm.sh",
-  "version": "1.0.0",
-  "description": "pm2 without the fat, unix processmanagement using simply 'ps' and 'flock' and a teaspoon of shellscript & extra features",
+  "version": "1.0.1",
+  "description": "pm2 without the fat in 1 shellscript, unix processmanagement using simply 'ps' and 'flock' and a teaspoon of shellscript & extra features",
   "main": "index.js",
   "directories": {
     "doc": "doc"

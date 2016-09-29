@@ -1,21 +1,31 @@
 <img src="doc/logo.png" width="120"/>
+![Build Status](https://travis-ci.org/coderofsalvation/pm.sh.svg?branch=master)
+
 
 Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal
-Basically it's pm2 without the fat written in bash, using simply ```ps``` and ```flock```
+Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 ## Usage
 
-    $ wget "http://sldfjlskdf" -O ~/bin/pm && chmod 755 ~/bin/pm
+    $ wget "https://github.com/coderofsalvation/pm.sh/blob/master/bin/pm" -O ~/bin/pm && chmod 755 ~/bin/pm
     $ pm
     Usage:                                                                                                          
                                                                                                                     
       pm init                                      create ~/.pm.conf.sh configfile                                  
-      pm status                                    show app(names) and their status                                 
+      pm list                                      list appnames                                                    
       pm add <appdir>                              add application(dir which contains application definition file)  
       pm remove <appdir>                           remove application                                               
-      pm start <appname> [args] [..]               start app                                                        
+      pm status                                    show app(names) and their status                                 
+      pm start <appname> [--log]                   start app (and tail logs)                                        
       pm stop <appname>                            stop  app                                                        
+      pm startall                                  start all applications                                           
+      pm stopall                                   stop all applications                                           
+      pm tail <appname>                            monitor logs                                                        
+      pm inspect <appname>                         show all related files, startcmds, env-vars                      
                                                                                                                     
+      pm config ga <appname>                       configure google analytics (opens default editor)                
+      pm config webhook <appname>                  add POST webhook (opens default editor)                          
+                                                                                                                
                                                    ┌─────────────────────────────────────────────────┐              
                                                    │ docs: https://github.com/coderofsalvation/pm.sh │              
 
@@ -28,19 +38,26 @@ Basically it's pm2 without the fat written in bash, using simply ```ps``` and ``
     $ pm restart yourapp
     $ pm stop  yourapp
     $ pm status
-    USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-    sqz      22314  0.0  0.0   5800  1776 pts/2    S+   20:35   0:00 flock -w 1 /tmp/.pm.yourapp.lock npm start
+    APP        STATUS     PORT       RESTARTS USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+
+    proxy      running      80       0        foo      24900  1.6 10.0   5800  1744 pts/2    S    19:15   0:00 npm start
+    app1       running    3001       0        foo      24901  1.0 20.0   5800  1744 pts/2    S    19:19   0:00 npm start
+    website    running    3002       0        foo      24902  1.2 10.0   5800  1744 pts/2    S    19:25   0:00 npm start
+    dbworker1  running    none       0        foo      24903  4.0 30.0   5800  1744 pts/2    S    19:35   0:00 ./dbworker
+    dbworker2  running    none       0        foo      24904  1.0 10.0   5800  1744 pts/2    S    19:45   0:00 ./dbworker
+    dbworker3  stopped    none       12       foo      24905  0.0  0.0   5800  1744 pts/2    S    19:55   0:00 ./dbworker
 
 ## Features
 
 * automatically restart process
 * forward stderr/stdout logs to separated error- and logfiles
-* forward stderr/stdout to syslog (if installed)
+* forward stderr/stdout to syslog (if installed: see `tail -f /var/log/syslog`)
 * support for [Application Definition-files](doc/application-definition.md)
+* multiple configurations using `PM_CONFIG=alternate_config_dir pm.sh`
+* nodejs `package.json` support
+* event push webhooks
+* event push to google analytics
 * [TODO] app.sh support (native)
-* [TODO] forward log regex-matches + start/stop/restart-events to custom webhook
-* [TODO] forward log regex-matches + start/stop/restart-events to google analytics events
-* [TODO] package.json support
 * [TODO] automatically pull branch from github on github webhook
 * [TODO] app.json support
 * [TODO] composer.json support
@@ -50,5 +67,6 @@ Basically it's pm2 without the fat written in bash, using simply ```ps``` and ``
 
 I love pm2 and other tools.
 However, I've lost a lot of time on managing problems which are actually solved in unix already.
-Instead of fiddling with upstart daemon-scripts, I wanted to keep the pm2 workflow, but using shellscript.
-Shellscript/unix is well designed to manage unix processes, pm2 and pm.sh is just a wrapper.
+Instead of fiddling with upstart daemon-scripts or pm2's codebase, I a pm2 workflow using the unix way.
+Eventhough i love nodejs, shellscript/unix is well designed to manage unix processes.
+Therefore a little bashscript feels right somehow.

@@ -1,40 +1,25 @@
 scope=app
 cmd=help
 
-for arg in $@
-  switch $arg
-    case exec
-      scope=process
-      cmd=$arg
-      shift
-    case start
-      scope=process
-      cmd=$arg
-      shift
-    case stop
-      scope=process
-      cmd=$arg
-      shift
-    case restart
-      scope=process
-      cmd=$arg
-      shift
-    case status
-      scope=process
-      cmd=$arg
-      shift
-    case init
-      scope=apps
-      cmd=$arg
-      shift
-    case add
-      scope=apps
-      cmd=$arg
-      shift
-    case remove
-      scope=apps
-      cmd=$arg
-      shift
-    case --force
-      runtime=sh
-      shift
+opts:scanopts()
+  for arg in $@
+    switch $arg
+      case --log
+        LOG=1
+        shift
+
+opts:scancmd()
+  for arg in $@
+    switch $arg
+      case exec|start|stop|restart|startall|stopall|list|inspect|status|tail
+        scope=process
+        cmd=$arg
+        break
+      case init|add|remove
+        scope=apps
+        cmd=$arg
+        break
+      case config
+        scope=config
+        cmd=edit
+        break

@@ -1,0 +1,19 @@
+config_template={}
+
+config_template['ga']='# In analytics you can view graphs at:
+#  
+#   Realtime->Events
+#   Behaviour->Events->overview 
+#
+#   note: please save this file before exiting
+#
+# export CLIENT_NAME="$(cat /etc/hostname)"       # uncomment this if needed
+# export CLIENTID="$APP_NAME"                     # update this if your app has multiple instances
+# export DATASOURCE="$APP_NAME"                   # update this if needed for better stats
+export GOOGLE_ANALYTICS_TOKEN="X-XXXXXXX-1"
+'
+
+config_template['webhook']='# put urls below on each line which can handle POST requests (with json)
+#
+# ps. make sure you save this file before exiting
+'

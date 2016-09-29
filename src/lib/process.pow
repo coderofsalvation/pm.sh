@@ -1,36 +1,41 @@
 process:log()
-  date +"%Y-%m-%d %H:%M:%S $*"
   { which logger &>/dev/null && date +"%Y-%m-%d %H:%M:%S $*" | logger -i --tag pm; } &>/dev/null
+  date +"%Y-%m-%d %H:%M:%S $*"
 
-process:gettmpfile(pname)
-  echo /tmp/.pm.$(basename $pname)
+process:gettmpfile(appname)
+  echo $app_config_dir/apps/$(basename $appname)
 
-process:getpidfile(pname)
-  echo $(process:gettmpfile $pname).pid
+process:getpidfile(appname)
+  echo $(process:gettmpfile $appname).pid
 
-process:getpid(pname)
-  local pidfile=$(process:getpidfile $pname)
+process:getpid(appname)
+  local pidfile=$(process:getpidfile $appname)
   if -f $pidfile
     cat $pidfile
   else 
     echo -1
 
-process:getlockfile(pname)
-  local tmpfile=$(process:gettmpfile $pname)
+process:getlockfile(appname)
+  local tmpfile=$(process:gettmpfile $appname)
   echo $tmpfile.lock
 
-process:getlogfile(pname)
-  local tmpfile=$(process:gettmpfile $pname)
+process:getlogfile(appname)
+  local tmpfile=$(process:gettmpfile $appname)
   echo $tmpfile.log
 
-process:exec(pname)
-  shift # remove first arg from argument array
-  cnt=1
-  lockfile=$(process:getlockfile $pname)
-  trap "process:log \"#$cnt: $pname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
+process:exec(appname)
+  shift 
+  cnt=0
+  lockfile=$(process:getlockfile $appname)
+  deffile=$(process:gettmpfile $appname).def
+  cntfile=$(process:gettmpfile $appname).cnt
+  workdir=$(apps:getworkdir $deffile)
+  cd $workdir
+  trap "process:log \"#$cnt: $appname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
+  echo $cnt > $cntfile
   while :
-    process:log "#$cnt $pname started [pid $$]"
-    flock -w 0 $lockfile $pname "$@" || exit 1
+    process:log "#$cnt $appname started [pid $$]"
+    { flock -w 0 $lockfile "$@" || exit 1;} 
     code="$?"                                 # check exit status code
     exit="EXIT"
     if $code == 129
@@ -39,51 +44,123 @@ process:exec(pname)
       exit=SIGINT
     if $code == 143
       exit=SIGTERM
-    process:log "#$cnt $pname $exit [$code]"
+    process:log "#$cnt $appname $exit [$code]"
+    event:trigger $appname exit "#$cnt exitcode $code"
+    event:trigger $appname restart $cnt
     sleep 5s                                  # wait for seconds until next boot
     cnt=$(($cnt+1))                           # increment counter
+    echo $cnt > $cntfile
+    # handle odd/buggy case 
+    if $cnt > 50
+    event:trigger $appname error "restarted > 50 times"
+      $selfpath/pm stop $appname              
 
-process:start(pname)
-  shift # remove first arg from argument array
-  pidfile=$(process:gettmpfile $pname).pid
-  logfile=$(process:getlogfile $pname)
-  lockfile=$(process:getlockfile $pname)
+process:inspect(appname)
+  apps:exit_if_nonexists $appname
+  deffile=$(process:gettmpfile $appname).def
+  pidfile=$(process:gettmpfile $appname).pid
+  logfile=$(process:getlogfile $appname)
+  lockfile=$(process:getlockfile $appname)
+  startcmd=$(apps:getstartcmd $deffile)
+  workdir=$(apps:getworkdir $deffile)
+  pidvalue="n/a"
+  if -f $pidfile
+    pidvalue=$(<$pidfile)
+  echo "appname                : "$appname
+  echo "startcommand           : "$startcmd
+  echo "workdir                : "$workdir
+  echo "application definition : "$deffile
+  echo "pidfile                : "$pidfile
+  echo "logfile stdout         : "$logfile.stdout
+  echo "logfile stderr         : "$logfile.stderr
+  echo "lockfile               : "$lockfile
+  echo "pidvalue               : "$pidvalue
+  set > $tmpfile.1
+  if -f $workdir/env.sh
+    source $workdir/env.sh
+  if -f $workdir/env.production.sh
+    source $workdir/env.production.sh
+  set > $tmpfile.2
+  diff -Nau $tmpfile.1 $tmpfile.2 | grep -E '^\+[A-Za-z][A-Za-z_0-9]+=' | sed 's/^+/environment            : /g'
+  if ! -f pidfile
+    echo -e "\nps. some files weren't created yet. Use 'pm start <appname>' first."
+
+process:startall()
+  event:trigger $appname startall
+  apps:every process:start
+
+process:stopall()
+  event:trigger $appname stopall
+  apps:every process:stop
+
+process:start(appname)
+  apps:exit_if_nonexists $appname
+  deffile=$(process:gettmpfile $appname).def
+  pidfile=$(process:gettmpfile $appname).pid
+  logfile=$(process:getlogfile $appname)
+  lockfile=$(process:getlockfile $appname)
+  startcmd=$(apps:getstartcmd $deffile)
   flock -w 0 $lockfile sleep 0.1s || { echo "already started"; exit 1; }
-  nohup $selfpath/pm exec $pname "$@" 1>$logfile.stdout 2>$logfile.stderr &
+  nohup $selfpath/pm exec $appname ${startcmd} 1>$logfile.stdout 2>$logfile.stderr &
   echo $! > $pidfile 
+  if -n $LOG
+    process:tail $appname
+  echo "'$appname' started'"
+  event:trigger $appname start
+
+process:tail(appname)
+  apps:exit_if_nonexists $appname
+  deffile=$(process:gettmpfile $appname).def
+  logfile=$(process:getlogfile $appname)
   echo -e "press CTRL-C to stop logmonitor:\n"
-  set -x
   tailf $logfile.stdout $logfile.stderr
 
-process:stop(pname)
+process:stop(appname)
   shift # remove first arg
-  pid=$(process:getpid $pname)
+  pid=$(process:getpid $appname)
   if ! $pid == "-1"
     echo killing pid $pid 
-    rm $(process:getpidfile $pname)
+    rm $(process:getpidfile $appname)
     pkill -P $pid
   else
-    echo "$pname is not running"
+    echo "$appname is not running"
+  event:trigger $appname stop
 
-process:restart(pname)
-  process:stop $pname &
+process:restart(appname)
+  event:trigger $appname restart
+  process:stop $appname &
   wait 
-  process:start $pname
+  process:start $appname
 
-process:status(pname)
-  ps=$(ps au)
-  seen=()
+process:ps(appname,apppath)
+  lockfile=$(process:getlockfile $appname)
+  cntfile=$(process:gettmpfile $appname).cnt
+  ps="$(ps au)"
   cols="$(echo "$ps" | head -n1)"                        # print cols header
-  printf "%-10s %-10s %s\n" "APP" "STATUS" "$cols"
-  echo "$ps" | grep "flock.*pm\..*\.lock" >> $tmpfile.ps # print psdata
-  for lockfile in ls /tmp/.pm.*.lock
-    appname=${lockfile/*pm\./}
-    appname=${appname/\.lock/}
-    echo $appname
-    flock -w 0 $lockfile sleep 0.1s && status=running || status=stopped
-    if $status == "running"
-      printf "%-10s %-10s" "$appname" "$status"
-    else
-      line="$(fgrep "$lockfile" $tmpfile.ps)"
-      printf "%-10s %-10s %s\n" "$appname" "$status" "$line"
-     
+  set +e
+  psapp="$(echo "$ps" | fgrep $appname | fgrep flock)"
+  restarts=0
+  if -f $cntfile
+    restarts=$(cat $cntfile)
+  status="stopped"
+  port="none"
+  echo "$ps" | fgrep -q "pm exec $appname" && status="running"
+  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols"
+  printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp"
+
+process:status()
+  apps:every process:ps
+
+process:list(appname)
+  apps:every echo | awk '{ print $1 }'
+
+process:getrepo(appname)
+  deffile=$(process:gettmpfile $appname).def
+  workdir=$(apps:getworkdir $deffile)
+  cd $workdir
+  if -f .git/config 
+    repo="$( cat .git/config | grep url | head -n1 | sed 's/.*\///g' )"
+    branch="$( git branch 2>&1 | grep "^*" | sed 's/ //g;s/^*//g'   )"
+    hash="$(git rev-parse HEAD 2>/dev/null)"
+    echo "$repo(${branch}:${hash:0:4})"
+

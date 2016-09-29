@@ -1,19 +1,72 @@
-config_file=~/.pm.conf.sh
-tpl_config='
-declare -A apps
-apps=()
-'
+app_config_dir=~/.pm.sh
 
-apps:init()
-  if -f $config_file
-    echo "error: $config_file already exist..are you sure? (if so, please delete it)"
+if not empty $PM_CONFIG
+  app_config_dir="$PM_CONFIG"
+
+apps:init(silent)
+  if ! -d $app_config_dir
+    mkdir -p $app_config_dir/apps
+
+apps:exit_if_nonexists(appname)
+  if not -n $1
+    app:help
+    exit 0
+  deffile="$(process:gettmpfile $appname).def"
+  if ! -f $deffile
+    echo "app '$appname' does not exist, please use 'pm status' to list appnames"
     exit 1
-  else
-    echo "$tpl_config" > $config_file
+
+apps:scan_application_definitions(appdir)
+  if -f $appdir/package.json
+    echo $appdir/package.json
+  #if -f $appdir/composer.json
+  #  echo $appdir/package.json
+  #if -f $appdir/app.sh
+  #  echo $appdir/package.json
+  #if -f $appdir/app.json
+  #  echo $appdir/package.json
+
+apps:getworkdir(appdef)
+  appdeffile="$(<$appdef)"
+  dirname $appdeffile
+
+apps:getstartcmd(appdef)
+  appdeffile="$(<$appdef)"
+  if $appdeffile =~ (.*package.json$)
+    echo "npm start"
+  if $appdeffile =~ (.*app.sh$)
+    echo $appdeffile
+
+apps:every(cb)
+  for app in $app_config_dir/apps/*.def
+    apppath="${app//\.def/}"
+    appname="$(basename $apppath)"
+    $cb $appname $apppath
  
 apps:add(appdir)
-  echo add appdir=$appdir
+  app:init
+  if ! -d $appdir
+    echo "'$appdir' does not exist" && exit 1
+  if ! ${appdir:0:1} == "/"
+    appdir="$(pwd)/$appdir"
+  defs=$( apps:scan_application_definitions $appdir )
+  if ${#defs} == 0
+    echo -e "couldn't find application definition in $appdir, like:\n"
+    echo "  * $appdir/package.json"
+    echo "  * $appdir/composer.json"
+    echo "  * $appdir/app.sh"
+    echo "  * $appdir/app.json"
+    exit 1
+  applicationname=$( basename $appdir )
+  echo "$defs" | head -n1 > "$app_config_dir/apps/$applicationname.def"
+  echo "'$applicationname' was added"
 
-apps:remove(appdir)
-  echo remove appdir=$appdir
+apps:remove(app)
+  app:init
+  if ! -f $app_config_dir/apps/$app.def
+    echo -e "couldn't find application '$app'\n\nplease run 'pm status' to see all apps"
+    exit 1
+  $selfpath/pm stop $app &>/dev/null
+  rm $app_config_dir/apps/$app.*
+  echo "'$app' was removed"
    

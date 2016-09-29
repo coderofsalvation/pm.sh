@@ -1,0 +1,89 @@
+#!/bin/bash
+
+set -E
+
+export ErrorTracker=$(mktemp)
+echo "0" > $ErrorTracker
+
+NoIndent="_noIdent--##$RANDOM"
+
+format() {
+  while IFS='' read -e -r line; do
+    if [[ ! "$line" =~ "$NoIndent".* ]]; then
+      printf "  %s\n" "$line"
+    else
+      printf "${line/$NoIndent/}\n"
+    fi
+  done
+}
+
+trap 'echo $? > "$ErrorTracker"' ERR
+
+{
+
+Info="\033[1;35m"
+File="\033[1;34m"
+Pass="\033[1;32m"
+Error="\033[1;31m"
+Nc="\033[0;00m"
+
+decl_file() {
+  printf "${NoIndent}${File}$1\n${Nc}"
+}
+
+checktest() {
+  if [ -n "$2" ]; then
+    wait "$2"
+    local exitcode=$?
+  else
+    local exitcode=$1
+  fi
+  if [[ $exitcode == "0" ]]; then
+    printf "${NoIndent}${Pass}Tests passed!\n${Nc}\n"
+  else
+    printf "${NoIndent}${Error}Tests failed!\n${Nc}\n"
+    exit 1
+  fi
+}
+
+header() {
+  printf "${NoIndent}${Info}$1${Nc}\n"
+}
+
+finish() {
+  printf "${NoIndent}${Info}OK!${Nc}\n"
+}
+
+testdirectory() {
+  local directory="$1"
+  local command="$2"
+  local varname="$3"
+  local pattern="$4"
+  [[ ! -n $pattern ]] && pattern=".*"
+
+  for file in "$directory"/*; do
+    if [[ $file =~ $pattern ]]; then
+      decl_file "$file"
+      local rq_file="${file//\//\\/}"
+      eval "$(sed -E "s/\\\$[{]?${varname}[}]?/\"${rq_file}\"/" < <(echo "${command}"))"
+      checktest "$?" "$!" || exit 1
+    fi
+  done
+}
+
+header "apps.pow tests:"
+testdirectory "test/apps" './${file}' 'file'
+testdirectory "test/process" './${file}' 'file'
+
+finish
+
+} | format
+
+Err="$(cat "$ErrorTracker")"
+rm $ErrorTracker
+
+if [[ $Err != 0 ]]; then
+  echo "Error code: ${Err}"
+fi
+
+exit $Err

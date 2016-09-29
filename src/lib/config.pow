@@ -1,0 +1,10 @@
+config:edit(config_type,appname)
+  apps:exit_if_nonexists $appname
+  which curl &>/dev/null || { echo "curl doesn't seem to be installed (which is required for this feature)"; exit 1; }
+  if ! -n $EDITOR
+    echo "no default editor set. Please specify using 'export EDITOR=vim' e.g."
+    exit 1
+  configfile=$(process:gettmpfile $appname).$config_type
+  if ! -f $configfile
+    echo $config_template["$config_type"] > $configfile
+  $EDITOR $configfile

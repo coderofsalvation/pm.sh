@@ -1,0 +1,18 @@
+# source: https://gist.github.com/coderofsalvation/8997682
+# applies a raw url encode on the string
+# usage: urlencode "foo foo bar"      <-- outputs: foo%3dfoo%20bar
+# @param string stringtoencode
+
+string:urlencode()
+  local string="${1}"
+  local strlen=${#string}
+  local encoded=""
+  for pos=0 ; pos<strlen ; pos++
+    o=""
+    c=${string:$pos:1}
+    if $c =~ ([-_.~a-zA-Z0-9])
+      o="${c}"
+    else
+      printf -v o '%%%02x' "'$c"
+    encoded="$encoded""$o"
+  echo "${encoded}"

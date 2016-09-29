@@ -1,0 +1,51 @@
+event:trigger_analytics(file,appname,type,msg)
+  logfile=$(process:getlogfile $appname).stdout
+  if ! -f $file
+    return 0
+  source $file &>/dev/null
+  if -n $GOOGLE_ANALYTICS_TOKEN
+    if not -n $CLIENT_NAME
+      CLIENT_NAME=$(cat /etc/hostname)
+    if not -n $APP_NAME
+      APP_NAME=$appname
+    if not -n $CLIENT_ID
+      CLIENT_ID="$APP_NAME"
+    if not -n $DATASOURCE
+      DATASOURCE="$APP_NAME"
+    if not -n UID
+      UID="$APP_NAME"                          # update this if needed for better stats
+    repo="$(process:getrepo $appname)"
+    if not empty $repo
+      msg="$repo $msg"
+      msg="${msg/^ /}"
+    msg="$(string:urlencode "$msg")"
+    process:log "pm.sh: posting to analytics" >> $logfile
+    result="$(curl -vv -L -s --connect-timeout 2 -d "v=1&tid=$GOOGLE_ANALYTICS_TOKEN&uid=$UID&ds=$DATASOURCE&cid=$CLIENT_ID&t=event&ec=$SERVER_NAME&ea=$type&el=$msg" https://www.google-analytics.com/collect 2>&1 | fgrep '< HTTP/' )"
+    process:log "pm.sh: $result" >> $logfile
+
+event:trigger_webhook(appname,type,url)
+  logfile=$(process:getlogfile $appname).stdout
+  if empty $url
+    return 1
+  repo="$(process:getrepo $appname)"
+  CLIENT_NAME=$(cat /etc/hostname)
+  if ${#repo} > 0
+    msg="$msg $repo"
+    msg="${msg/^ /}"
+  process:log "pm.sh: posting to webhook $url" >> $logfile
+  curl -vv -L -s --connect-timeout 2 -H 'Content-Type: application/json' -X POST $url --data '{"source":"pm.sh","server":"'$CLIENT_NAME'","app":"'$appname'","type":"'$type'","message":"'$msg'"}' "$url" 2>&1 | fgrep '< HTTP/' &> $tmpfile.curl
+  for line from $tmpfile.curl
+    process:log "pm.sh: $line" >> $logfile
+  return 0
+
+event:trigger_webhooks(file,appname,type)
+  if ! -f $file
+    return 0
+  cat $file | grep -vE '^#' | mappipe event:trigger_webhook $appname $type
+
+event:trigger(appname,type,msg)
+  apps:exit_if_nonexists $appname
+  gafile=$(process:gettmpfile $appname).ga
+  webhookfile=$(process:gettmpfile $appname).webhook
+  event:trigger_analytics $gafile "$@"
+  event:trigger_webhooks $webhookfile "$@"

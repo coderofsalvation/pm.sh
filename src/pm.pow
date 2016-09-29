@@ -1,3 +1,5 @@
+config_dir=~/.pm.sh
+
 require_cmd 'flock'
 require_cmd 'awk'
 require_cmd 'date'
@@ -8,8 +10,12 @@ require_cmd 'head'
 pid=$$
 
 require 'lib/opts.pow'
+require 'lib/string.pow'
+require 'lib/event.pow'
 require 'lib/process.pow'
 require 'lib/apps.pow'
+require 'lib/config.templates.pow'
+require 'lib/config.pow'
 
 app:init()
   for dep in dependencies
@@ -19,14 +25,27 @@ app:help()
   echo 'Usage:                                                                                                          '     
   echo '                                                                                                                '
   echo '  pm init                                      create ~/.pm.conf.sh configfile                                  '
-  echo '  pm status                                    show app(names) and their status                                 '
+  echo '  pm list                                      list appnames                                                    '
   echo '  pm add <appdir>                              add application(dir which contains application definition file)  '
   echo '  pm remove <appdir>                           remove application                                               '
-  echo '  pm start <appname> [args] [..]               start app                                                        '
+  echo '  pm status                                    show app(names) and their status                                 '
+  echo '  pm start <appname> [--log]                   start app (and tail logs)                                        '
   echo '  pm stop <appname>                            stop  app                                                        '
+  echo '  pm startall                                  start all applications                                           '
+  echo '  pm stopall                                   stop all applications                                           '
+  echo '  pm tail <appname>                            monitor logs                                                        '
+  echo '  pm inspect <appname>                         show all related files, startcmds, env-vars                      '
+  echo '                                                                                                                '
+  echo '  pm config ga <appname>                       configure google analytics (opens default editor)                '
+  echo '  pm config webhook <appname>                  add POST webhook (opens default editor)                          '
+  echo '  pm start config gitwebhook <appname>               add POST webhook (opens default editor)                          '
   echo '                                                                                                                '
   echo '                                               ┌─────────────────────────────────────────────────┐              '
   echo '                                               │ docs: https://github.com/coderofsalvation/pm.sh │              '
   echo '                                                                                                                '
 
+opts:scancmd "$@"
+opts:scanopts "$@"
+if -n $1
+  shift
 app:init && $scope:$cmd "$@"

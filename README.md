@@ -33,11 +33,15 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
     $ pm init
     $ pm add ~/myapps/yourapp
     $ pm status
-
+    APP        PID %CPU %MEM   PORT  RSS TTY      STAT START   TIME COMMAND
+    
+    yourapp                                                         
+    
     $ pm start yourapp
     $ pm restart yourapp
     $ pm stop  yourapp
     $ pm status
+
     APP        STATUS     PORT       RESTARTS USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 
     proxy      running      80       0        foo      24900  1.6 10.0   5800  1744 pts/2    S    19:15   0:00 npm start
@@ -55,8 +59,8 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 * support for [Application Definition-files](doc/application-definition.md)
 * multiple configurations using `PM_CONFIG=alternate_config_dir pm.sh`
 * nodejs `package.json` support
-* event push webhooks
-* event push to google analytics
+* events can be pushed to custom webhooks (per application-config)
+* events can be pushed to google analytics (per application-config)
 * [TODO] app.sh support (native)
 * [TODO] automatically pull branch from github on github webhook
 * [TODO] app.json support
@@ -67,6 +71,5 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 I love pm2 and other tools.
 However, I've lost a lot of time on managing problems which are actually solved in unix already.
-Instead of fiddling with upstart daemon-scripts or pm2's codebase, I a pm2 workflow using the unix way.
-Eventhough i love nodejs, shellscript/unix is well designed to manage unix processes.
-Therefore a little bashscript feels right somehow.
+Instead of fiddling with upstart daemon-scripts or pm2's codebase, I longed for a unixy pm2 workflow.
+Eventhough i love nodejs, in some cases shellscript/unix seems more appropriate.

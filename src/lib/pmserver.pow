@@ -1,0 +1,61 @@
+server:listen(port)
+  which gawk &>/dev/null || { echo "'gawk' is not installed..which is needed for pm.sh"; }
+  gawk_code='
+    function listen(){
+      RS = ORS = "\r\n"
+      HttpService = "/inet/tcp/8080/0/0"
+      Response = "{\"status\":\"received\"}"
+      Len = length(Response) + length(ORS)
+      print "HTTP/1.0 200 OK"          |& HttpService
+      print "Content-Length: " Len ORS |& HttpService
+      print Response                   |& HttpService
+      Req = ""
+      while ((HttpService |& getline) > 0){
+        print $Req
+        Req+=$line
+        continue;
+      }
+      system("") # flush output
+      close(HttpService)
+      listen()
+    }
+    BEGIN {
+      listen()
+    }
+  '
+  gawk -e "$gawk_code"
+
+server:parse_appname(postrequest,type)
+  appname="${postrequest/POST \/}"
+  echo "${appname/\/$type*/}"
+
+server:onrequest(request)
+  local appname
+  if $request =~ (POST .*\/start)
+    appname=$(server:parse_appname "$request" start)
+    echo $appname
+  if $request =~ (POST .*\/pull)
+    appname=$(server:parse_appname "$request" pull)
+    deffile=$(process:gettmpfile $appname).def
+    if -f $deffile
+      server:gitpull $appname
+    else
+      echo -e "received webhook: pull $appname (error: no such app)"
+
+server:start(port)
+  echo "listening on port $port"
+  server:listen $port | mappipe server:onrequest
+
+server:gitpull(appname)
+  deffile=$(process:gettmpfile $appname).def
+  workdir=$(apps:getworkdir $deffile)
+  if -d $workdir/.git
+    cd $workdir
+    echo -e "received webhook: pull $appname, performing git pull"
+    set +e
+    $selfpath/pm stop $appname
+    git pull origin master 2>&1 | awk '{ print "git: "$0 }'
+    $selfpath/pm start $appname
+    set -e
+  else
+    echo -e "received webhook: pull $appname (error: $workdir is not a git repo)"

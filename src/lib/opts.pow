@@ -7,11 +7,14 @@ opts:scanopts()
       case --log
         LOG=1
         shift
+      case -h
+        ALL=1
+        shift
 
 opts:scancmd()
   for arg in $@
     switch $arg
-      case exec|start|stop|restart|startall|stopall|list|inspect|status|tail
+      case exec|debug|start|stop|restart|startall|stopall|list|inspect|status|tail
         scope=process
         cmd=$arg
         break
@@ -22,4 +25,8 @@ opts:scancmd()
       case config
         scope=config
         cmd=edit
+        break
+      case server
+        scope=server
+        cmd=start
         break

@@ -2,6 +2,7 @@
 selfpath="$(dirname "$(readlink -f "$0")")"
 cd $selfpath
 
+echo "compiling bin/pm (please wait..)"
 # install powscript if needed
 which powscript 1>/dev/null 2>/dev/null && HAS_POW=1
 [[ -f powscript ]]                      && HAS_POW=1

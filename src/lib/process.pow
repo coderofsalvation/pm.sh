@@ -30,12 +30,13 @@ process:exec(appname)
   deffile=$(process:gettmpfile $appname).def
   cntfile=$(process:gettmpfile $appname).cnt
   workdir=$(apps:getworkdir $deffile)
+  startcmd=$(apps:getstartcmd $deffile)
   cd $workdir
   trap "process:log \"#$cnt: $appname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
   echo $cnt > $cntfile
   while :
-    process:log "#$cnt $appname started [pid $$]"
-    { flock -w 0 $lockfile "$@" || exit 1;} 
+    process:log "#$cnt $appname started [pid $$]: ${startcmd}"
+    { flock -w 0 $lockfile ${startcmd} || exit 1;} 
     code="$?"                                 # check exit status code
     exit="EXIT"
     if $code == 129
@@ -75,6 +76,7 @@ process:inspect(appname)
   echo "logfile stderr         : "$logfile.stderr
   echo "lockfile               : "$lockfile
   echo "pidvalue               : "$pidvalue
+  echo "repository             : "$(process:getrepo $appname)
   set > $tmpfile.1
   if -f $workdir/env.sh
     source $workdir/env.sh
@@ -99,21 +101,20 @@ process:start(appname)
   pidfile=$(process:gettmpfile $appname).pid
   logfile=$(process:getlogfile $appname)
   lockfile=$(process:getlockfile $appname)
-  startcmd=$(apps:getstartcmd $deffile)
   flock -w 0 $lockfile sleep 0.1s || { echo "already started"; exit 1; }
-  nohup $selfpath/pm exec $appname ${startcmd} 1>$logfile.stdout 2>$logfile.stderr &
+  nohup $selfpath/pm exec $appname 1>$logfile.stdout 2>$logfile.stderr &
   echo $! > $pidfile 
-  if -n $LOG
-    process:tail $appname
   echo "'$appname' started'"
   event:trigger $appname start
+  if -n $LOG
+    process:tail $appname
 
 process:tail(appname)
   apps:exit_if_nonexists $appname
   deffile=$(process:gettmpfile $appname).def
   logfile=$(process:getlogfile $appname)
   echo -e "press CTRL-C to stop logmonitor:\n"
-  tailf $logfile.stdout $logfile.stderr
+  tail -q -f $logfile.*
 
 process:stop(appname)
   shift # remove first arg
@@ -136,7 +137,6 @@ process:ps(appname,apppath)
   lockfile=$(process:getlockfile $appname)
   cntfile=$(process:gettmpfile $appname).cnt
   ps="$(ps au)"
-  cols="$(echo "$ps" | head -n1)"                        # print cols header
   set +e
   psapp="$(echo "$ps" | fgrep $appname | fgrep flock)"
   restarts=0
@@ -145,10 +145,11 @@ process:ps(appname,apppath)
   status="stopped"
   port="none"
   echo "$ps" | fgrep -q "pm exec $appname" && status="running"
-  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols"
-  printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp"
+  printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 
 process:status()
+  cols="$(ps au | head -n1)"                        # print cols header
+  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols"
   apps:every process:ps
 
 process:list(appname)
@@ -163,4 +164,8 @@ process:getrepo(appname)
     branch="$( git branch 2>&1 | grep "^*" | sed 's/ //g;s/^*//g'   )"
     hash="$(git rev-parse HEAD 2>/dev/null)"
     echo "$repo(${branch}:${hash:0:4})"
+
+process:debug(appname)
+  process:inspect $appname
+  process:exec $appname
 

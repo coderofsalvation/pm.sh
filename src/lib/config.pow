@@ -1,5 +1,8 @@
 config:edit(config_type,appname)
-  apps:exit_if_nonexists $appname
+  if not $config_type == "pmserver"
+    apps:exit_if_nonexists $appname
+  else
+    appname=pmserver 
   which curl &>/dev/null || { echo "curl doesn't seem to be installed (which is required for this feature)"; exit 1; }
   if ! -n $EDITOR
     echo "no default editor set. Please specify using 'export EDITOR=vim' e.g."
@@ -8,3 +11,6 @@ config:edit(config_type,appname)
   if ! -f $configfile
     echo $config_template["$config_type"] > $configfile
   $EDITOR $configfile
+  if $config_type == "pmserver"
+    server:init
+

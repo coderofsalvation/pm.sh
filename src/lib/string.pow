@@ -16,3 +16,10 @@ string:urlencode()
       printf -v o '%%%02x' "'$c"
     encoded="$encoded""$o"
   echo "${encoded}"
+
+# source: https://gist.github.com/coderofsalvation/8326356
+# prints lines which do not exceed the terminal width
+# usage: cat somefile.txt | wraplines
+
+string:wraplines()
+  cat | cut -c 1-$(tput cols)

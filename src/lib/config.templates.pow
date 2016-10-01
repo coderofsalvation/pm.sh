@@ -1,6 +1,6 @@
 config_template={}
 
-config_template['ga']='# In analytics you can view graphs at:
+config_template["ga"]='# In analytics you can view graphs at:
 #  
 #   Realtime->Events
 #   Behaviour->Events->overview 
@@ -13,7 +13,18 @@ config_template['ga']='# In analytics you can view graphs at:
 export GOOGLE_ANALYTICS_TOKEN="X-XXXXXXX-1"
 '
 
-config_template['webhook']='# put urls below on each line which can handle POST requests (with json)
+config_template["webhook"]='# put urls below on each line which can handle POST requests (with json)
 #
 # ps. make sure you save this file before exiting
+'
+
+config_template["cmdhook"]='# put cmds (with fullpath like "/usr/bin/foo bar") below on each line which can handle POST requests (with json)
+#
+# ps. make sure you save this file before exiting
+'
+
+config_template["pmserver"]='# specify your http port below 
+#
+# ps. make sure you save this file before exiting
+export PORT=8080
 '

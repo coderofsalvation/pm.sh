@@ -1,0 +1,78 @@
+server:listen(port)
+  which gawk &>/dev/null || { echo "'gawk' is not installed..which is needed for pm.sh"; }
+  while :
+    gawk 'BEGIN{ 
+      SOCK="/inet/tcp/8080/0/0"; 
+      body_size=0; 
+      #request head 
+      while( (SOCK |& getline REQ) > 0){ 
+        print REQ; 
+        if( REQ~/^Content-Length/ ){ 
+          split(REQ,cl,":"); 
+          body_size=cl[2]; 
+        } 
+        if( REQ~/\r/ ){ break; } 
+      } 
+      #request body 
+      recive_size=0; 
+      if(body_size > 0){ 
+        while( (SOCK |& getline REQ) > 0){ 
+          print REQ; 
+          recive_size=recive_size + length(REQ) + 1; 
+          if(recive_size >= body_size){ break; } 
+        } 
+      } 
+      #response 
+      RS = ORS = "\r\n"
+      Response = "{\"status\":\"received\"}"
+      Len = length(Response) + length(ORS)
+      print "HTTP/1.0 200"             |& SOCK; 
+      print "Content-Length: " Len ORS |& SOCK; 
+      print Response                   |& SOCK; 
+      system("")
+      close(SOCK); 
+    }'
+
+server:parse_appname(postrequest,type)
+  appname="${postrequest/POST \/}"
+  echo "${appname/\/$type*/}"
+
+server:onrequest(request)
+  local appname
+  if $request =~ (POST .*\/start)
+    appname=$(server:parse_appname "$request" start)
+    echo $appname
+  if $request =~ (POST .*\/pull)
+    appname=$(server:parse_appname "$request" pull)
+    deffile=$(process:gettmpfile $appname).def
+    if -f $deffile
+      server:gitpull $appname
+    else
+      echo -e "received webhook: pull $appname (error: no such app)"
+
+server:start(port)
+  # check if we have a commandline invocation
+  if $port == "start" 
+    if -f $app_config_dir/apps/pmserver.pmserver
+      source $app_config_dir/apps/pmserver.pmserver
+      port=$PORT
+  echo "listening on port $port"
+  server:listen $port | mappipe server:onrequest
+
+server:gitpull(appname)
+  deffile=$(process:gettmpfile $appname).def
+  workdir=$(apps:getworkdir $deffile)
+  if -d $workdir/.git
+    cd $workdir
+    echo -e "received webhook: pull $appname, performing git pull"
+    set +e
+    $selfpath/pm stop $appname
+    git pull origin master 2>&1 | awk '{ print "git: "$0 }'
+    $selfpath/pm start $appname
+    set -e
+  else
+    echo -e "received webhook: pull $appname (error: $workdir is not a git repo)"
+
+server:init()
+  echo "$selfpath/pm server start" > $app_config_dir/apps/pmserver.def
+

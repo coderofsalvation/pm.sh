@@ -2,7 +2,7 @@
 ![Build Status](https://travis-ci.org/coderofsalvation/pm.sh.svg?branch=master)
 
 
-Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal
+Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal, #github, #bitbucket
 Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 ## Usage
@@ -19,15 +19,15 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
       pm start <appname> [--log]                   start app (and tail logs)                                        
       pm stop <appname>                            stop  app                                                        
       pm startall                                  start all applications                                           
-      pm stopall                                   stop all applications                                           
-      pm tail <appname>                            monitor logs                                                        
+      pm stopall                                   stop all applications                                            
+      pm tail <appname>                            monitor logs                                                     
       pm inspect <appname>                         show all related files, startcmds, env-vars                      
+      pm debug <appname>                           start application in foreground (for testing purposes)           
                                                                                                                     
-      pm config ga <appname>                       configure google analytics (opens default editor)                
-      pm config webhook <appname>                  add POST webhook (opens default editor)                          
-                                                                                                                
+      type 'pm -h' to see all options: receiving github/bitbucket webhooks, pushing to google analytics etc
                                                    ┌─────────────────────────────────────────────────┐              
                                                    │ docs: https://github.com/coderofsalvation/pm.sh │              
+                                                                                                                
 
 ## Demo 
     $ pm init
@@ -59,13 +59,28 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 * support for [Application Definition-files](doc/application-definition.md)
 * multiple configurations using `PM_CONFIG=alternate_config_dir pm.sh`
 * nodejs `package.json` support
-* events can be pushed to custom webhooks (per application-config)
+* inbound / outbound custom webhooks (per application-config)
 * events can be pushed to google analytics (per application-config)
 * [TODO] app.sh support (native)
 * [TODO] automatically pull branch from github on github webhook
 * [TODO] app.json support
 * [TODO] composer.json support
 * [TODO] pm2.json support
+
+## Git / Bitbucket / Anywhere push webhooks
+
+Automatically update your running application ('app1' for example) when you push to Github/Bitbucket.
+
+    $ PORT=8080 pm start webhookserver
+    
+* Now you can enter __ttp://yourdomain.com:8080/{yourappname}/pull__ as Github/BB webhook value (only push!)
+
+Or call from another service:
+
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/pull
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/start
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/stop
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/restart
 
 ## Why
 

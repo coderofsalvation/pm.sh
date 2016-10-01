@@ -71,16 +71,16 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 Automatically update your running application ('app1' for example) when you push to Github/Bitbucket.
 
-    $ PORT=8080 pm start webhookserver
+    $ pm config pmserver && pm start pmserver 
     
 * Now you can enter __ttp://yourdomain.com:8080/{yourappname}/pull__ as Github/BB webhook value (only push!)
 
 Or call from another service:
 
-    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/pull
-    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/start
-    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/stop
-    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/app1/restart
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/pull/app1
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/start/app1
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/stop/app1
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/restart/app1
 
 ## Why
 

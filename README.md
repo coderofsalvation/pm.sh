@@ -82,7 +82,7 @@ Automatically update your running application ('app1' for example) when you push
     $ pm config pmserver 8080 
     $ pm start pmserver 
     
-* Now you can enter __ttp://yourdomain.com:8080/pull/{yourappname}_ as Github/BB webhook value (only push!)
+* specify *http://yourdomain.com:8080/pull/{yourappname}* as webhookurl in Github/BB (only push!)
 
 Or call from another service:
 

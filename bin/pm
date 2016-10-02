@@ -379,6 +379,26 @@ process:restart(){
   process:start $appname
 }
 
+process:getport(){
+  local appname="${1}"
+  deffile=$(process:gettmpfile $appname).def
+  workdir=$(apps:getworkdir $deffile)
+  portfile=$(process:gettmpfile $appname).port
+  port="none"
+  if cd $workdir &>/dev/null; then
+    if [[ -f env.sh ]]; then
+      source env.sh &>/dev/null
+      if [[ -n $PORT ]]; then
+        port=$PORT
+      fi
+    fi
+  fi
+  if [[ -f $portfile ]]; then
+    port=$(<$portfile)
+  fi
+  echo "$port"
+}
+
 process:ps(){
   local appname="${1}"
   local apppath="${2}"
@@ -392,7 +412,7 @@ process:ps(){
     restarts=$(cat $cntfile)
   fi
   status="stopped"
-  port="none"
+  port=$(process:getport $appname)
   if ! empty $psapp; then
     status="running"
   fi
@@ -401,7 +421,7 @@ process:ps(){
 
 process:status(){
   cols="$(ps au | head -n1)"                        # print cols header
-  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols"
+  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
   apps:every process:ps
 }
 
@@ -560,40 +580,33 @@ config_template["webhook"]='# put urls below on each line which can handle POST 
 config_template["cmdhook"]='# put cmds (with fullpath like "/usr/bin/foo bar") below on each line which can handle POST requests (with json)
 '
 
-config_template["pmserver"]='# specify your http port below
-export PORT=8080
-'
-
 config:edit(){
   local config_type="${1}"
   local appname="${2}"
   if [[ ! $config_type == "pmserver" ]]; then
     apps:exit_if_nonexists $appname
+    which curl &>/dev/null || { echo "curl doesn't seem to be installed (which is required for this feature)"; exit 1; }
+    if [[ ! -n $EDITOR ]]; then
+      echo "no default editor set. Please specify using 'export EDITOR=vim' e.g."
+      exit 1
+    fi
+    configfile=$(process:gettmpfile $appname).$config_type
+    if [[ ! -f $configfile ]]; then
+      echo "${config_template["$config_type"]}" > $configfile
+    fi
+    $EDITOR $configfile
   else
-    appname=pmserver
-  fi
-  which curl &>/dev/null || { echo "curl doesn't seem to be installed (which is required for this feature)"; exit 1; }
-  if [[ ! -n $EDITOR ]]; then
-    echo "no default editor set. Please specify using 'export EDITOR=vim' e.g."
-    exit 1
-  fi
-  configfile=$(process:gettmpfile $appname).$config_type
-  if [[ ! -f $configfile ]]; then
-    echo "${config_template["$config_type"]}" > $configfile
-  fi
-  $EDITOR $configfile
-  if [[ $config_type == "pmserver" ]]; then
-    server:init
+    echo "$selfpath/pm server start $2" > $app_config_dir/apps/pmserver.def
+    echo "$2" > $app_config_dir/apps/pmserver.port
   fi
 }
-
 
 server:listen(){
   local port="${1}"
   which gawk &>/dev/null || { echo "'gawk' is not installed..which is needed for pm.sh"; }
   while :; do
     gawk 'BEGIN{
-      SOCK="/inet/tcp/8080/0/0";
+      SOCK="/inet/tcp/'$port'/0/0";
       body_size=0;
       #request head
       while( (SOCK |& getline REQ) > 0){
@@ -664,10 +677,7 @@ server:start(){
   local port="${1}"
   # check if we have a commandline invocation
   if [[ $port == "start" ]]; then
-    if [[ -f $app_config_dir/apps/pmserver.pmserver ]]; then
-      source $app_config_dir/apps/pmserver.pmserver
-      port=$PORT
-    fi
+    port=$2
   fi
   echo "listening on port $port"
   server:listen $port | mappipe server:onrequest
@@ -688,10 +698,6 @@ server:gitpull(){
   else
     echo -e "received webhook: pull $appname (error: $workdir is not a git repo)"
   fi
-}
-
-server:init(){
-  echo "$selfpath/pm server start" > $app_config_dir/apps/pmserver.def
 }
 
 server:kill(){
@@ -734,8 +740,8 @@ app:help(){
     echo '  pm config webhook <appname>                  [todo] add POST webhooks (opens default editor)                '
     echo '  pm config cmdhook <appname>                  [todo] add unix commands (opens default editor)                '
     echo '                                                                                                              '
-    echo '  pm config pmserver <appname>                 set port of server to receive github/bitbucket webhooks        '
-    echo '  pm <start|stop> pmserver [--log]             [beta] start/stop server (background) [and watch logs]         '
+    echo '  pm config pmserver <port>                    set port of server to receive github/bitbucket webhooks        '
+    echo '  pm <start|stop> pmserver [--log]             start/stop server (background) [and watch logs]                '
     echo '                                                                                                              '
     echo '  environment variables:                                                                                      '
     echo '     PM_CONFIG=/my/dir                         configuration path (default: ~/.pm.sh)                         '

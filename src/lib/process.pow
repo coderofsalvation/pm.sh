@@ -141,6 +141,20 @@ process:restart(appname)
   set +e ; process:stop $appname ; set -e
   process:start $appname
 
+process:getport(appname)
+  deffile=$(process:gettmpfile $appname).def
+  workdir=$(apps:getworkdir $deffile)
+  portfile=$(process:gettmpfile $appname).port
+  port="none"
+  if cd $workdir &>/dev/null 
+    if -f env.sh
+      source env.sh &>/dev/null
+      if -n $PORT
+        port=$PORT
+  if -f $portfile
+    port=$(<$portfile)
+  echo "$port"
+
 process:ps(appname,apppath)
   lockfile=$(process:getlockfile $appname)
   cntfile=$(process:gettmpfile $appname).cnt
@@ -151,14 +165,14 @@ process:ps(appname,apppath)
   if -f $cntfile
     restarts=$(cat $cntfile)
   status="stopped"
-  port="none"
+  port=$(process:getport $appname)
   if not empty $psapp
     status="running"
   printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 
 process:status()
   cols="$(ps au | head -n1)"                        # print cols header
-  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols"
+  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
   apps:every process:ps
 
 process:list(appname)

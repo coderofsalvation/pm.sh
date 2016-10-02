@@ -2,7 +2,7 @@ server:listen(port)
   which gawk &>/dev/null || { echo "'gawk' is not installed..which is needed for pm.sh"; }
   while :
     gawk 'BEGIN{ 
-      SOCK="/inet/tcp/8080/0/0"; 
+      SOCK="/inet/tcp/'$port'/0/0"; 
       body_size=0; 
       #request head 
       while( (SOCK |& getline REQ) > 0){ 
@@ -60,9 +60,7 @@ server:onrequest(request)
 server:start(port)
   # check if we have a commandline invocation
   if $port == "start" 
-    if -f $app_config_dir/apps/pmserver.pmserver
-      source $app_config_dir/apps/pmserver.pmserver
-      port=$PORT
+    port=$2
   echo "listening on port $port"
   server:listen $port | mappipe server:onrequest
 
@@ -79,9 +77,6 @@ server:gitpull(appname)
     set -e
   else
     echo -e "received webhook: pull $appname (error: $workdir is not a git repo)"
-
-server:init()
-  echo "$selfpath/pm server start" > $app_config_dir/apps/pmserver.def
 
 server:kill()
   killall gawk &>/dev/null # gawk is a strange beast when it comes to child processes

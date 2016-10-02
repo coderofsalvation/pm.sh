@@ -79,7 +79,8 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 Automatically update your running application ('app1' for example) when you push to Github/Bitbucket.
 
-    $ pm config pmserver && pm start pmserver 
+    $ pm config pmserver 8080 
+    $ pm start pmserver 
     
 * Now you can enter __ttp://yourdomain.com:8080/pull/{yourappname}_ as Github/BB webhook value (only push!)
 

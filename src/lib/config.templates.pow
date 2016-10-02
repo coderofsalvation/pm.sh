@@ -22,9 +22,3 @@ config_template["cmdhook"]='# put cmds (with fullpath like "/usr/bin/foo bar") b
 #
 # ps. make sure you save this file before exiting
 '
-
-config_template["pmserver"]='# specify your http port below 
-#
-# ps. make sure you save this file before exiting
-export PORT=8080
-'

@@ -114,7 +114,7 @@ string:urlencode(){
 
 
 string:wraplines(){
-  cat | cut -c 1-$(tput cols)
+  cut -c 1-$(tput cols)
 }
 
 event:trigger_analytics(){

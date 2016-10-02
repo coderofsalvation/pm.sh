@@ -7,7 +7,7 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 ## Usage
 
-    $ wget "https://github.com/coderofsalvation/pm.sh/blob/master/bin/pm" -O ~/bin/pm && chmod 755 ~/bin/pm
+    $ wget "https://raw.githubusercontent.com/coderofsalvation/pm.sh/master/bin/pm" -O ~/bin/pm && chmod 755 ~/bin/pm
     $ pm
     Usage:                                                                                                          
                                                                                                                     

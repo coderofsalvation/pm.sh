@@ -13,7 +13,7 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
                                                                                                                     
       pm init                                      create ~/.pm.conf.sh configfile                                  
       pm list                                      list appnames                                                    
-      pm add <appdir> [cmd]                        add application(dir which contains application definition file)  
+      pm add <appdir> [appname] [cmd]              add application(dir which contains application definition file)  
       pm remove <appdir>                           remove application                                               
       pm status                                    show app(names) and their status                                 
       pm start <appname> [--log]                   start app (and tail logs)                                        

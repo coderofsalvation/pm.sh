@@ -168,11 +168,11 @@ process:ps(appname,apppath)
   port=$(process:getport $appname)
   if not empty $psapp
     status="running"
-  printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
+  printf "%-20s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 
 process:status()
   cols="$(ps au | head -n1)"                        # print cols header
-  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
+  printf "%-20s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
   apps:every process:ps
 
 process:list(appname)

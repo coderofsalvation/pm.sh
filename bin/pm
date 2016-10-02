@@ -416,12 +416,12 @@ process:ps(){
   if ! empty $psapp; then
     status="running"
   fi
-  printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
+  printf "%-20s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 }
 
 process:status(){
   cols="$(ps au | head -n1)"                        # print cols header
-  printf "%-15s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
+  printf "%-20s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
   apps:every process:ps
 }
 
@@ -492,7 +492,7 @@ apps:scan_application_definitions(){
 
 apps:getworkdir(){
   local appdef="${1}"
-  appdeffile="$(<$appdef)"
+  appdeffile="$(cat $appdef | awk '{ print $1  }' | head -n1)"
   dirname $appdeffile | head -n1
 }
 

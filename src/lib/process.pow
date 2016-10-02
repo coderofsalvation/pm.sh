@@ -48,12 +48,12 @@ process:exec(appname)
     process:log "#$cnt $appname $exit [$code]"
     event:trigger $appname exit "#$cnt exitcode $code"
     event:trigger $appname restart $cnt
-    sleep 5s                                  # wait for seconds until next boot
+    sleep 3s                                  # wait for seconds until next boot
     cnt=$(($cnt+1))                           # increment counter
     echo $cnt > $cntfile
     # handle odd/buggy case 
     if $cnt > 50
-    event:trigger $appname error "restarted > 50 times"
+      event:trigger $appname error "restarted > 50 times"
       $selfpath/pm stop $appname              
 
 process:inspect(appname)
@@ -104,7 +104,7 @@ process:start(appname)
   flock -w 0 $lockfile sleep 0.1s || { echo "already started"; exit 1; }
   nohup $selfpath/pm exec $appname 1>$logfile.stdout 2>$logfile.stderr &
   echo $! > $pidfile 
-  echo "'$appname' started'"
+  echo "$appname started"
   event:trigger $appname start
   if -n $LOG
     process:tail $appname
@@ -119,18 +119,26 @@ process:tail(appname)
 process:stop(appname)
   shift # remove first arg
   pid=$(process:getpid $appname)
+  cntfile=$(process:gettmpfile $appname).cnt
+  lockfile=$(process:getlockfile $appname)
   if ! $pid == "-1"
     echo killing pid $pid 
     rm $(process:getpidfile $appname)
     pkill -P $pid
+    sleep 2s
+    rm $lockfile
+    touch $lockfile
   else
     echo "$appname is not running"
+  echo 0 > $cntfile
+  if $appname == "pmserver"
+    server:kill
   event:trigger $appname stop
 
 process:restart(appname)
+  cntfile=$(process:gettmpfile $appname).cnt
   event:trigger $appname restart
-  process:stop $appname &
-  wait 
+  set +e ; process:stop $appname ; set -e
   process:start $appname
 
 process:ps(appname,apppath)
@@ -138,13 +146,14 @@ process:ps(appname,apppath)
   cntfile=$(process:gettmpfile $appname).cnt
   ps="$(ps au)"
   set +e
-  psapp="$(echo "$ps" | fgrep $appname | fgrep flock)"
+  psapp="$(echo "$ps" | fgrep $appname | fgrep flock | head -n1)"
   restarts=0
   if -f $cntfile
     restarts=$(cat $cntfile)
   status="stopped"
   port="none"
-  echo "$ps" | fgrep -q "pm exec $appname" && status="running"
+  if not empty $psapp
+    status="running"
   printf "%-15s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 
 process:status()

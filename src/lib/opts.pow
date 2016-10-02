@@ -14,6 +14,10 @@ opts:scanopts()
 opts:scancmd()
   for arg in $@
     switch $arg
+      case server
+        scope=server
+        cmd=start
+        return 0
       case exec|debug|start|stop|restart|startall|stopall|list|inspect|status|tail
         scope=process
         cmd=$arg
@@ -25,8 +29,4 @@ opts:scancmd()
       case config
         scope=config
         cmd=edit
-        break
-      case server
-        scope=server
-        cmd=start
         break

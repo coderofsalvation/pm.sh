@@ -1,0 +1,39 @@
+#!/bin/bash
+export PM_CONFIG=$(pwd)/.pm.sh
+rm -rf $PM_CONFIG &>/dev/null
+bin/pm init
+echo 'export PORT=8080' > $PM_CONFIG/apps/pmserver.pmserver
+echo "$(pwd)/bin/pm server start" > $PM_CONFIG/apps/pmserver.def
+bin/pm add $(pwd)/bin sleeper sleep 5s &>/dev/null
+set +e
+bin/pm restart pmserver &>/dev/null
+bin/pm stop sleeper &>/dev/null
+echo "OK: started server"
+sleep 1s
+
+error(msg)
+  echo "ERROR: $msg"
+  exit 1
+
+curl -X POST http://localhost:8080/start/sleeper --data "flop" &>/dev/null
+sleep 2s
+if bin/pm status | grep -q "sleeper         running"
+  echo "OK: sleeper started thru REST call"
+else
+  error "sleeper didnt start"
+
+curl -X POST http://localhost:8080/restart/sleeper --data "flop" &>/dev/null
+sleep 3s
+if bin/pm status | grep -q "sleeper         running"
+  echo "OK: sleeper restarted thru REST call"
+else
+  error "sleeper didnt restart"
+
+curl -X POST http://localhost:8080/stop/sleeper --data "flop" &>/dev/null
+sleep 1s
+if bin/pm status | grep -q "sleeper         stopped"
+  echo "OK: sleeper stopped thru REST call"
+else
+  error "sleeper didnt stop"
+
+bin/pm stop pmserver  &>/dev/null

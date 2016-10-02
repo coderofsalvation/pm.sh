@@ -1,0 +1,59 @@
+#!/bin/bash
+export PM_CONFIG=.pm.sh
+rm -rf .pm.sh &>/dev/null
+
+bin/pm init
+
+if bin/pm add test/testdata/app.empty        | grep -q "couldn"
+  echo "OK: refused adding empty app"
+else  
+  echo "ERROR"
+  exit 1
+
+if bin/pm add $(pwd)/test/testdata/app.empty | grep -q "couldn"
+  echo "OK: refused adding empty app (abs path)"
+else
+  echo "ERROR"
+  exit 1
+
+if bin/pm add $(pwd)/test/testdata/app1      | grep -q "added"
+  echo "OK: add nonempty app (package.json)"
+else
+  echo "ERROR"
+  exit 1
+
+if bin/pm add $(pwd)/bin sleeper sleep 5s    | grep -q "added"
+  echo "OK: add nonempty app (cmdline"
+else
+  echo "ERROR"
+  exit 1
+ 
+if not -f $PM_CONFIG/apps/app1.def
+  echo "error: could not find $PM_CONFIG/apps/app1"
+  exit 1
+
+if not -f $(cat $PM_CONFIG/apps/app1.def)
+  echo "error: could not find package.json"
+  exit 1
+
+if bin/pm remove asdkfhaklsjdfas    | grep -q "couldn" 
+  echo "OK: refused removing nonexisting app" 
+else
+  echo "ERROR"
+  exit 1
+
+if bin/pm remove app1               | grep -q "removed"
+  echo "OK: removed existing app"
+else
+  echo "ERROR"
+  exit 1
+
+if bin/pm remove sleeper            | grep -q "removed"
+  echo "OK: removed existing app"
+else
+  echo "ERROR"
+  exit 1
+
+if bin/pm status | grep -qE '(sleeper|app1)'
+  echo "ERROR: apps were not removed"
+  exit 1

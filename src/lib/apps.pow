@@ -29,7 +29,7 @@ apps:scan_application_definitions(appdir)
 
 apps:getworkdir(appdef)
   appdeffile="$(<$appdef)"
-  dirname $appdeffile
+  dirname $appdeffile | head -n1
 
 apps:getstartcmd(appdef)
   appdeffile="$(<$appdef)"
@@ -44,23 +44,34 @@ apps:every(cb)
     appname="$(basename $apppath)"
     $cb $appname $apppath
  
-apps:add(appdir)
+apps:add(appdir,appname)
+  if not empty $appdir
+    shift
+  if not empty $appname
+    shift
+  cmd="$*"
   app:init
   if ! -d $appdir
     echo "'$appdir' does not exist" && exit 1
   if ! ${appdir:0:1} == "/"
     appdir="$(pwd)/$appdir"
   defs=$( apps:scan_application_definitions $appdir )
-  if ${#defs} == 0
+  if empty $defs and empty $cmd
     echo -e "couldn't find application definition in $appdir, like:\n"
     echo "  * $appdir/package.json"
     echo "  * $appdir/composer.json"
     echo "  * $appdir/app.sh"
     echo "  * $appdir/app.json"
+    echo ""
+    echo " please provide one, or provide cmd as extra argument to 'pm add'"
     exit 1
-  applicationname=$( basename $appdir )
-  echo "$defs" | head -n1 > "$app_config_dir/apps/$applicationname.def"
-  echo "'$applicationname' was added"
+  if empty $appname
+    appname=$( basename $appdir )
+  if not empty $defs
+    echo "$defs" | head -n1 > "$app_config_dir/apps/$appname.def"
+  if not empty $cmd
+    echo "$cmd" | head -n1 > "$app_config_dir/apps/$appname.def"
+  echo "'$appname' was added"
 
 apps:remove(app)
   app:init

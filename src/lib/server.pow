@@ -39,10 +39,17 @@ server:parse_appname(postrequest,type)
 
 server:onrequest(request)
   local appname
-  if $request =~ (POST .*\/start)
+  echo "req=$request"
+  if $request =~ (POST \/start\/)
     appname=$(server:parse_appname "$request" start)
-    echo $appname
-  if $request =~ (POST .*\/pull)
+    $selfpath/pm start $appname
+  if $request =~ (POST \/stop\/)
+    appname=$(server:parse_appname "$request" stop)
+    $selfpath/pm stop $appname
+  if $request =~ (POST \/restart\/)
+    appname=$(server:parse_appname "$request" restart)
+    $selfpath/pm restart $appname
+  if $request =~ (POST \/pull\/)
     appname=$(server:parse_appname "$request" pull)
     deffile=$(process:gettmpfile $appname).def
     if -f $deffile
@@ -75,4 +82,7 @@ server:gitpull(appname)
 
 server:init()
   echo "$selfpath/pm server start" > $app_config_dir/apps/pmserver.def
+
+server:kill()
+  killall gawk &>/dev/null # gawk is a strange beast when it comes to child processes
 

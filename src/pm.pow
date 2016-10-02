@@ -27,7 +27,7 @@ app:help()
   echo '                                                                                                                '
   echo '  pm init                                      create ~/.pm.conf.sh configfile                                  '
   echo '  pm list                                      list appnames                                                    '
-  echo '  pm add <appdir>                              add application(dir which contains application definition file)  '
+  echo '  pm add <appdir> [appname] [cmd]              add application(dir which contains app definition file) [or cmd] '
   echo '  pm remove <appdir>                           remove application                                               '
   echo '  pm status                                    show app(names) and their status                                 '
   echo '  pm start <appname> [--log]                   start app (and tail logs)                                        '

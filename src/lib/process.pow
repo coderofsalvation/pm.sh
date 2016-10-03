@@ -116,15 +116,22 @@ process:tail(appname)
   echo -e "press CTRL-C to stop logmonitor:\n"
   tail -q -f $logfile.*
 
+process:killtree(pid)
+  pids="$pid";
+  while pgrep -P $pid &>/dev/null
+    pid=$(pgrep -P $pid)
+    pids="$pids $pid"
+  echo "killing pids: $pids"
+  kill -9 ${pids}
+
 process:stop(appname)
   shift # remove first arg
   pid=$(process:getpid $appname)
   cntfile=$(process:gettmpfile $appname).cnt
   lockfile=$(process:getlockfile $appname)
   if ! $pid == "-1"
-    echo killing pid $pid 
     rm $(process:getpidfile $appname)
-    pkill -P $pid
+    process:killtree $pid
     sleep 2s
     rm $lockfile
     touch $lockfile

@@ -348,6 +348,17 @@ process:tail(){
   tail -q -f $logfile.*
 }
 
+process:killtree(){
+  local pid="${1}"
+  pids="$pid";
+  while pgrep -P $pid &>/dev/null; do
+    pid=$(pgrep -P $pid)
+    pids="$pids $pid"
+  done
+  echo "killing pids: $pids"
+  kill -9 ${pids}
+}
+
 process:stop(){
   local appname="${1}"
   shift # remove first arg
@@ -355,9 +366,8 @@ process:stop(){
   cntfile=$(process:gettmpfile $appname).cnt
   lockfile=$(process:getlockfile $appname)
   if [[ ! $pid == "-1" ]]; then
-    echo killing pid $pid
     rm $(process:getpidfile $appname)
-    pkill -P $pid
+    process:killtree $pid
     sleep 2s
     rm $lockfile
     touch $lockfile

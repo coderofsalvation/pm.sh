@@ -249,7 +249,7 @@ process:exec(){
   echo $cnt > $cntfile
   while :; do
     process:log "#$cnt $appname started [pid $$]: ${startcmd}"
-    { flock -w 0 $lockfile ${startcmd} || exit 1;}
+    { flock -n $lockfile ${startcmd} || exit 1;}
     code="$?"                                 # check exit status code
     exit="EXIT"
     if [[ $code == 129 ]]; then
@@ -329,7 +329,7 @@ process:start(){
   pidfile=$(process:gettmpfile $appname).pid
   logfile=$(process:getlogfile $appname)
   lockfile=$(process:getlockfile $appname)
-  flock -w 0 $lockfile sleep 0.1s || { echo "already started"; exit 1; }
+  flock -n $lockfile sleep 0.1s || { echo "already started"; exit 1; }
   nohup $selfpath/pm exec $appname 1>$logfile.stdout 2>$logfile.stderr &
   echo $! > $pidfile
   echo "$appname started"

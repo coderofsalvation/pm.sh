@@ -22,4 +22,4 @@ string:urlencode()
 # usage: cat somefile.txt | wraplines
 
 string:wraplines()
-  cut -c 1-$(tput cols)
+  cut -c1-$(stty size <&2 | cut -d' ' -f2)

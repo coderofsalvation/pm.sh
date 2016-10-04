@@ -114,7 +114,7 @@ string:urlencode(){
 
 
 string:wraplines(){
-  cut -c 1-$(tput cols)
+  cut -c1-$(stty size <&2 | cut -d' ' -f2)
 }
 
 event:trigger_analytics(){

@@ -33,6 +33,7 @@ process:exec(appname)
   startcmd=$(apps:getstartcmd $deffile)
   cd $workdir
   trap "process:log \"#$cnt: $appname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
+  process:setenv $workdir
   echo $cnt > $cntfile
   while :
     process:log "#$cnt $appname started [pid $$]: ${startcmd}"
@@ -56,6 +57,12 @@ process:exec(appname)
       event:trigger $appname error "restarted > 50 times"
       $selfpath/pm stop $appname              
 
+process:setenv(workdir)
+  if -f $workdir/env.sh
+    source $workdir/env.sh
+  if -f $workdir/env.production.sh
+    source $workdir/env.production.sh
+
 process:inspect(appname)
   apps:exit_if_nonexists $appname
   deffile=$(process:gettmpfile $appname).def
@@ -77,11 +84,8 @@ process:inspect(appname)
   echo "lockfile               : "$lockfile
   echo "pidvalue               : "$pidvalue
   echo "repository             : "$(process:getrepo $appname)
+  process:setenv $workdir
   set > $tmpfile.1
-  if -f $workdir/env.sh
-    source $workdir/env.sh
-  if -f $workdir/env.production.sh
-    source $workdir/env.production.sh
   set > $tmpfile.2
   diff -Nau $tmpfile.1 $tmpfile.2 | grep -E '^\+[A-Za-z][A-Za-z_0-9]+=' | sed 's/^+/environment            : /g'
   if ! -f pidfile

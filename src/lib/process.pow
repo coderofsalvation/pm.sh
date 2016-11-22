@@ -3,6 +3,8 @@ process:log()
   date +"%Y-%m-%d %H:%M:%S $*"
 
 process:gettmpfile(appname)
+  if empty appname 
+    return 0
   echo $app_config_dir/apps/$(basename $appname)
 
 process:getpidfile(appname)
@@ -92,11 +94,9 @@ process:inspect(appname)
     echo -e "\nps. some files weren't created yet. Use 'pm start <appname>' first."
 
 process:startall()
-  event:trigger $appname startall
   apps:every process:start
 
 process:stopall()
-  event:trigger $appname stopall
   apps:every process:stop
 
 process:start(appname)

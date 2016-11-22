@@ -45,6 +45,7 @@ event:trigger_webhooks(file,appname,type)
 
 event:trigger(appname,type,msg)
   apps:exit_if_nonexists $appname
+  deffile="$(process:gettmpfile $appname).def"
   gafile=$(process:gettmpfile $appname).ga
   webhookfile=$(process:gettmpfile $appname).webhook
   event:trigger_analytics $gafile "$@"

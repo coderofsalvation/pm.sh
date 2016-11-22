@@ -192,6 +192,7 @@ event:trigger(){
   local type="${2}"
   local msg="${3}"
   apps:exit_if_nonexists $appname
+  deffile="$(process:gettmpfile $appname).def"
   gafile=$(process:gettmpfile $appname).ga
   webhookfile=$(process:gettmpfile $appname).webhook
   event:trigger_analytics $gafile "$@"
@@ -205,6 +206,9 @@ process:log(){
 
 process:gettmpfile(){
   local appname="${1}"
+  if empty appname; then
+    return 0
+  fi
   echo $app_config_dir/apps/$(basename $appname)
 }
 
@@ -319,12 +323,10 @@ process:inspect(){
 }
 
 process:startall(){
-  event:trigger $appname startall
   apps:every process:start
 }
 
 process:stopall(){
-  event:trigger $appname stopall
   apps:every process:stop
 }
 

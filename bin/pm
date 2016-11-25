@@ -249,12 +249,13 @@ process:exec(){
   workdir=$(apps:getworkdir $deffile)
   startcmd=$(apps:getstartcmd $deffile)
   cd $workdir
-  trap "process:log \"#$cnt: $appname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
+  set +e
+  #trap "process:log \"#$cnt: $appname killed \$?\"; pkill -P $$" EXIT SIGHUP SIGINT SIGTERM
   process:setenv $workdir
   echo $cnt > $cntfile
   while :; do
     process:log "#$cnt $appname started [pid $$]: ${startcmd}"
-    { flock -n $lockfile ${startcmd} || exit 1;}
+    flock -n $lockfile ${startcmd}
     code="$?"                                 # check exit status code
     exit="EXIT"
     if [[ $code == 129 ]]; then

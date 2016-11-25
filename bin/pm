@@ -479,6 +479,7 @@ apps:init(){
   if [[ ! -d $app_config_dir ]]; then
     mkdir -p $app_config_dir/apps
     echo "$selfpath/pm webserver" > $app_config_dir/apps/pmserver.def
+    echo $app_config_dir > $app_config_dir/apps/pmserver.cwd
   fi
 }
 
@@ -510,8 +511,7 @@ apps:scan_application_definitions(){
 
 apps:getworkdir(){
   local appdef="${1}"
-  appdeffile="$(cat $appdef | awk '{ print $1  }' | head -n1)"
-  dirname $appdeffile | head -n1
+  echo "$(< "${appdef/.def/.cwd}")"
 }
 
 apps:getstartcmd(){
@@ -564,12 +564,11 @@ apps:add(){
   if empty $appname; then
     appname=$( basename $appdir )
   fi
-  if ! empty $defs; then
-    echo "$defs" | head -n1 > "$app_config_dir/apps/$appname.def"
+  echo "$appdir" > "$app_config_dir/apps/$appname.cwd"
+  if empty $defs; then
+    defs="$cmd"
   fi
-  if ! empty $cmd; then
-    echo "$cmd" | head -n1 > "$app_config_dir/apps/$appname.def"
-  fi
+  echo "$defs" | head -n1 > "$app_config_dir/apps/$appname.def"
   echo "'$appname' was added"
 }
 

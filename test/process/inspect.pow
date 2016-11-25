@@ -9,8 +9,8 @@ output="$(bin/pm inspect app1)"
 
 if not "$output" =~ appname
   { echo "ERROR"; exit 1; }
-if not "$output" =~ GA_TOKEN
-  { echo "ERROR"; exit 1; }
+#if not "$output" =~ GA_TOKEN
+#  { echo "ERROR"; exit 1; }
 if not "$output" =~ "npm start"
   { echo "ERROR"; exit 1; }
 if not "$output" =~ "created yet"

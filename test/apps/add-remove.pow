@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash 
 export PM_CONFIG=.pm.sh
 rm -rf .pm.sh &>/dev/null
 
@@ -22,12 +22,12 @@ else
   echo "ERROR"
   exit 1
 
-if bin/pm add $(pwd)/bin sleeper sleep 5s    | grep -q "added"
-  echo "OK: add nonempty app (cmdline"
+if bin/pm add $(pwd)/bin sleeper 'sleep 5s'  | grep -q "added"
+  echo "OK: add nonempty app (cmdline)"
 else
   echo "ERROR"
   exit 1
- 
+
 if not -f $PM_CONFIG/apps/app1.def
   echo "error: could not find $PM_CONFIG/apps/app1"
   exit 1

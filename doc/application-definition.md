@@ -3,6 +3,9 @@ Application definition files
 
 Just like pm2, pm.sh uses application definition files.
 
+## Environment
+
+> `env.sh` and `env.production.sh` are automatically sourced if present
 
 ## Nodejs (package.json)
 
@@ -35,10 +38,6 @@ Then add the projectdir
 
 ## Custom
 
-[TODO: implementation]
-Put a `app.sh` or `app.bash` in your projectdir:
+Ultimate freedom lies within adding the application to pm with a startcmd:
 
-    #!/bin/bash
-    export MY_ENV_VAR=foobar
-    [[ -f app.bash.live ]] && source app.bash.live
-    npm start
+    $ pm add /srv/app/myapp myapp './mystartupscript'

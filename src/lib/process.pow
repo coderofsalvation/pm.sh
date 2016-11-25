@@ -1,5 +1,5 @@
 process:log()
-  { which logger &>/dev/null && date +"%Y-%m-%d %H:%M:%S $*" | logger -i --tag pm; } &>/dev/null
+  { which logger &>/dev/null && date +"%Y-%m-%d %H:%M:%S $*" | logger -t pm; } &>/dev/null
   date +"%Y-%m-%d %H:%M:%S $*"
 
 process:gettmpfile(appname)

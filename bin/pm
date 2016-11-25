@@ -200,7 +200,7 @@ event:trigger(){
 }
 
 process:log(){
-  { which logger &>/dev/null && date +"%Y-%m-%d %H:%M:%S $*" | logger -i --tag pm; } &>/dev/null
+  { which logger &>/dev/null && date +"%Y-%m-%d %H:%M:%S $*" | logger -t pm; } &>/dev/null
   date +"%Y-%m-%d %H:%M:%S $*"
 }
 
@@ -565,7 +565,7 @@ apps:add(){
     appname=$( basename $appdir )
   fi
   echo "$appdir" > "$app_config_dir/apps/$appname.cwd"
-  if empty $defs; then
+  if ! empty $cmd; then
     defs="$cmd"
   fi
   echo "$defs" | head -n1 > "$app_config_dir/apps/$appname.def"

@@ -103,3 +103,38 @@ Eventhough i love nodejs, in some cases shellscript/unix seems more appropriate.
     # /etc/init/pm.conf
     start on (local-filesystems and net-device-up IFACE!=lo)
     exec sudo -u feelgood /home/feelgood /usr/bin/pm startall
+
+## Docker image
+
+There's a [ready-to-go](https://hub.docker.com/r/coderofsalvation/pm.sh-nodejs) nodejs-docker image.
+Put this in your `Dockerfile`:
+
+		# Usage:
+		#   docker build -t playterm .
+		#   docker run -it -e PROXY_PORT=8080 -e WEBHOOK_PORT=8080 -v $(pwd)/data:/data yourproject
+		FROM coderofsalvation/pm.sh-nodejs:latest
+
+		MAINTAINER Coder Of Salvation <info@leon.vankammen.eu>
+
+		ENV VERSION=v4.1.1
+
+		RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories
+		RUN apk upgrade --update
+		RUN apk add mongodb
+
+		ADD . /srv/apps/yourproject
+		VOLUME data /data
+
+		EXPOSE 8080 80 8081 4000 4001 4002 4003
+
+		CMD [ "sh","-c","/data/Dockerboot; cat" ]
+
+And put this in `data/Dockerboot`:
+
+		#!/bin/bash
+		export PROXY_PORT=8080
+		export WEBHOOK_PORT=8081
+		cp /srv/apps/playterm/lib/proxytable.js /srv/apps/proxytable.js
+		mongod &
+		/install/boot
+		su -c 'pm startall' nodejs 

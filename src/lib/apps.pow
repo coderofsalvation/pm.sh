@@ -68,7 +68,7 @@ apps:add(appdir,appname)
   if empty $appname
     appname=$( basename $appdir )
   echo "$appdir" > "$app_config_dir/apps/$appname.cwd"
-  if empty $defs
+  if not empty $cmd 
     defs="$cmd"
   echo "$defs" | head -n1 > "$app_config_dir/apps/$appname.def"
   echo "'$appname' was added"

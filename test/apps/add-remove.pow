@@ -22,6 +22,13 @@ else
   echo "ERROR"
   exit 1
 
+if bin/pm add $(pwd)/test/testdata/app1 flopje 'some custom cmdline'  | grep -q "added"
+  grep -q "custom" $PM_CONFIG/apps/flopje.def || exit 1
+  echo "OK: add nonempty app (package.json)"
+else
+  echo "ERROR"
+  exit 1
+
 if bin/pm add $(pwd)/bin sleeper 'sleep 5s'  | grep -q "added"
   echo "OK: add nonempty app (cmdline)"
 else

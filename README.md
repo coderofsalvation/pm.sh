@@ -30,6 +30,7 @@ Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
                                                                                                                 
 
 ## Demo 
+
     $ pm init
     $ pm add . pinger 'sleep 5m && curl http://foo.com/ping'
     $ pm add /apps/nodejs/proxy
@@ -98,7 +99,9 @@ However, I've lost a lot of time on managing problems which are actually solved 
 Instead of fiddling with upstart daemon-scripts or pm2's codebase, I longed for a unixy pm2 workflow.
 Eventhough i love nodejs, in some cases shellscript/unix seems more appropriate.
 
-## Upstart job
+## Server installation 
+
+Upstart job:
 
     # /etc/init/pm.conf
     start on (local-filesystems and net-device-up IFACE!=lo)

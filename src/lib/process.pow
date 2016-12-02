@@ -170,7 +170,7 @@ process:getport(appname)
 process:ps(appname,apppath)
   lockfile=$(process:getlockfile $appname)
   cntfile=$(process:gettmpfile $appname).cnt
-  ps="$(ps au)"
+  ps="$(ps aux)"
   set +e
   psapp="$(echo "$ps" | fgrep $appname | fgrep flock | head -n1)"
   restarts=0

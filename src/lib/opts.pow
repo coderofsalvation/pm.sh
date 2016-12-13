@@ -10,6 +10,10 @@ opts:scanopts()
       case -h
         ALL=1
         shift
+      case --format
+        FORMAT="$3"
+        shift
+        shift
 
 opts:scancmd()
   for arg in $@

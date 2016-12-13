@@ -24,7 +24,17 @@ server:listen(port)
       } 
       #response 
       RS = ORS = "\r\n"
-      Response = "{\"status\":\"received\"}"
+
+      # run ext cmd
+      Processes = ""
+      ProcessesCmd = "'$selfpath'/pm status | sed s/flock.*//g "
+      while ( ( ProcessesCmd | getline result  ) > 0  ) {
+        Processes = Processes result 
+      } 
+      gsub(/"/, "", Processes )
+      gsub(/\n/, "\\n", Processes )
+
+      Response = "{\"status\":\"received\",\"ps\":\"" Processes "\"}"
       Len = length(Response) + length(ORS)
       print "HTTP/1.0 200"             |& SOCK; 
       print "Content-Length: " Len ORS |& SOCK; 
@@ -72,7 +82,8 @@ server:gitpull(appname)
     echo -e "received webhook: pull $appname, performing git pull"
     set +e
     $selfpath/pm stop $appname
-    git pull origin master 2>&1 | awk '{ print "git: "$0 }'
+    branchname="$( git branch 2>&1 | grep "^*" | sed 's/ //g;s/^*//g'    )" 
+    git pull origin $branchname 2>&1 | awk '{ print "git: "$0 }'
     $selfpath/pm start $appname
     set -e
   else

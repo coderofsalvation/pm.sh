@@ -63,6 +63,11 @@ opts:scanopts(){
         ALL=1
         shift
         ;;
+      --format)
+        FORMAT="$3"
+        shift
+        shift
+        ;;
     esac
   done
 }
@@ -435,12 +440,18 @@ process:ps(){
   if ! empty $psapp; then
     status="running"
   fi
-  printf "%-20s %-8s %-6s %-10s %s\n" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
+  fmt="%-20s %-8s %-6s %-10s %s\n"
+  if ! empty $FORMAT; then
+    fmt="$FORMAT"
+  fi
+  printf "$fmt" "$appname" "$status" $port $restarts "$psapp" | string:wraplines
 }
 
 process:status(){
   cols="$(ps au | head -n1)"                        # print cols header
-  printf "%-20s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
+  if empty $FORMAT; then
+    printf "%-20s %-8s %-6s %-10s %s\n\n" "APP" "STATUS" "PORT" "RESTARTS" "$cols" | string:wraplines
+  fi
   apps:every process:ps
 }
 
@@ -646,7 +657,17 @@ server:listen(){
       }
       #response
       RS = ORS = "\r\n"
-      Response = "{\"status\":\"received\"}"
+
+      # run ext cmd
+      Processes = ""
+      ProcessesCmd = "'$selfpath'/pm status | sed s/flock.*//g "
+      while ( ( ProcessesCmd | getline result  ) > 0  ) {
+        Processes = Processes result
+      }
+      gsub(/"/, "", Processes )
+      gsub(/\n/, "\\n", Processes )
+
+      Response = "{\"status\":\"received\",\"ps\":\"" Processes "\"}"
       Len = length(Response) + length(ORS)
       print "HTTP/1.0 200"             |& SOCK;
       print "Content-Length: " Len ORS |& SOCK;
@@ -710,7 +731,8 @@ server:gitpull(){
     echo -e "received webhook: pull $appname, performing git pull"
     set +e
     $selfpath/pm stop $appname
-    git pull origin master 2>&1 | awk '{ print "git: "$0 }'
+    branchname="$( git branch 2>&1 | grep "^*" | sed 's/ //g;s/^*//g'    )"
+    git pull origin $branchname 2>&1 | awk '{ print "git: "$0 }'
     $selfpath/pm start $appname
     set -e
   else

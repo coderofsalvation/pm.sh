@@ -118,7 +118,7 @@ process:tail(appname)
   apps:exit_if_nonexists $appname
   deffile=$(process:gettmpfile $appname).def
   logfile=$(process:getlogfile $appname)
-  echo -e "press CTRL-C to stop logmonitor:\n"
+  echo -e "$(date) press CTRL-C to stop logmonitor:\n"
   tail -q -f $logfile.*
 
 process:killtree(pid)

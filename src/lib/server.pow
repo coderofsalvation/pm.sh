@@ -79,7 +79,7 @@ server:gitpull(appname)
   workdir=$(apps:getworkdir $deffile)
   if -d $workdir/.git
     cd $workdir
-    echo -e "received webhook: pull $appname, performing git pull"
+    echo -e "$(date) received webhook: pull $appname, performing git pull"
     set +e
     $selfpath/pm stop $appname
     branchname="$( git branch 2>&1 | grep "^*" | sed 's/ //g;s/^*//g'    )" 

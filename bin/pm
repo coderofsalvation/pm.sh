@@ -417,9 +417,12 @@ process:getport(){
   if cd $workdir &>/dev/null; then
     if [[ -f env.sh ]]; then
       source env.sh &>/dev/null
-      if [[ -n $PORT ]]; then
-        port=$PORT
-      fi
+    fi
+    if [[ -f env.production.sh ]]; then
+      source env.sh &>/dev/null
+    fi
+    if [[ -n $PORT ]]; then
+      port=$PORT
     fi
   fi
   if [[ -f $portfile ]]; then

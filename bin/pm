@@ -419,7 +419,7 @@ process:getport(){
       source env.sh &>/dev/null
     fi
     if [[ -f env.production.sh ]]; then
-      source env.sh &>/dev/null
+      source env.production.sh &>/dev/null
     fi
     if [[ -n $PORT ]]; then
       port=$PORT

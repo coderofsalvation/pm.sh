@@ -162,7 +162,7 @@ process:getport(appname)
     if -f env.sh
       source env.sh &>/dev/null
     if -f env.production.sh
-      source env.sh &>/dev/null
+      source env.production.sh &>/dev/null
     if -n $PORT
       port=$PORT
   if -f $portfile

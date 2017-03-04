@@ -2,7 +2,7 @@
 ![Build Status](https://travis-ci.org/coderofsalvation/pm.sh.svg?branch=master)
 
 
-Philosophy: #unixy, #lightweight, #nodependencies, #docker, #commandline, #minimal, #github, #bitbucket
+Philosophy: #unixy, #lightweight, #webhooks, #nodependencies, #docker, #commandline, #minimal, #github, #bitbucket
 Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 ## Usage
@@ -120,9 +120,14 @@ Then install the repo on your liveserver:
     $ git clone git@github.com/myusername/foo.git
     $ cd foo
     $ pm add $(pwd) docker.myproject bin/webhook.sh
+    $ pm status
+    APP                  STATUS   PORT   RESTARTS   USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+
+    docker.myproject     running  none   0          docker    9904  0.0  0.0  10256   860 pts/0    S    10:23   0:00 flock -n /home/docker/.pm.sh/apps/docker.myproject.lock bin/webhook.sh
+    pmserver             running  8080   0          docker    7665  0.0  0.0  10256   768 pts/0    S    09:50   0:00 flock -n /home/docker/.pm.sh/apps/pmserver.lock /opt/pm.sh/bin/pm server start 90
     $ pm start docker.myproject
 
-> Voila! Now configure 'http://yourliveserver.com:9000/pull/docker.myproject' in the `webhooks`-session of your repo.
+> Voila! Now configure 'http://yourliveserver.com:8080/pull/docker.myproject' in the `webhooks`-session of your repo.
  
 
 ## Why

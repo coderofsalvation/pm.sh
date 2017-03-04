@@ -2,7 +2,7 @@
 ![Build Status](https://travis-ci.org/coderofsalvation/pm.sh.svg?branch=master)
 
 
-Philosophy: #unixy, #lightweight, #nodependencies, #commandline, #minimal, #github, #bitbucket
+Philosophy: #unixy, #lightweight, #nodependencies, #docker, #commandline, #minimal, #github, #bitbucket
 Basically it's pm2 without the fat, and `ps`+`flock` wrapped in bash.
 
 ## Usage
@@ -92,10 +92,43 @@ Or call from another service:
     $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/stop/app1
     $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/restart/app1
 
+## Trigger a Dockercontainer rebuild using webhooks
+
+Here's a quick way to achieve this:
+
+> Put a `Dockerfile` and this script in `webhook.sh` in your repo :
+
+    #!/bin/bash
+    set -e
+    rollback(){
+      docker rename yourcontainer.bak yourcontainer
+      docker start yourcontainer
+    }
+
+    trap rollback ERR                # rollback if any error
+
+    docker stop yourcontainer
+    docker rename yourcontainer yourcontainer.bak
+    docker build -t yourcontainer .
+    docker run -d yourcontainer 
+    docker rm -f yourcontainer.bak    
+
+    tail -f /dev/null                # do nothing until next webhook
+
+Then install the repo on your liveserver:
+
+    $ git clone git@github.com/myusername/foo.git
+    $ cd foo
+    $ pm add $(pwd) docker.myproject bin/webhook.sh
+    $ pm start docker.myproject
+
+> Voila! Now configure 'http://yourliveserver.com:9000/pull/docker.myproject' in the `webhooks`-session of your repo.
+ 
+
 ## Why
 
-I love pm2 and other tools.
-However, I've lost a lot of time on managing problems which are actually solved in unix already.
+I love pm2, docker and other tools.
+However, I've wasted lots of time on managing problems which are actually solved in unix already.
 Instead of fiddling with upstart daemon-scripts or pm2's codebase, I longed for a unixy pm2 workflow.
 Eventhough i love nodejs, in some cases shellscript/unix seems more appropriate.
 
@@ -112,32 +145,32 @@ Upstart job:
 There's a [ready-to-go](https://hub.docker.com/r/coderofsalvation/pm.sh-nodejs) nodejs-docker image.
 Put this in your `Dockerfile`:
 
-		# Usage:
-		#   docker build -t playterm .
-		#   docker run -it -e PROXY_PORT=8080 -e WEBHOOK_PORT=8080 -v $(pwd)/data:/data yourproject
-		FROM coderofsalvation/pm.sh-nodejs:latest
+    # Usage:
+    #   docker build -t playterm .
+    #   docker run -it -e PROXY_PORT=8080 -e WEBHOOK_PORT=8080 -v $(pwd)/data:/data yourproject
+    FROM coderofsalvation/pm.sh-nodejs:latest
 
-		MAINTAINER Coder Of Salvation <info@leon.vankammen.eu>
+    MAINTAINER Coder Of Salvation <info@leon.vankammen.eu>
 
-		ENV VERSION=v4.1.1
+    ENV VERSION=v4.1.1
 
-		RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories
-		RUN apk upgrade --update
-		RUN apk add mongodb
+    RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories
+    RUN apk upgrade --update
+    RUN apk add mongodb
 
-		ADD . /srv/apps/yourproject
-		VOLUME data /data
+    ADD . /srv/apps/yourproject
+    VOLUME data /data
 
-		EXPOSE 8080 80 8081 4000 4001 4002 4003
+    EXPOSE 8080 80 8081 4000 4001 4002 4003
 
-		CMD [ "sh","-c","/data/Dockerboot; cat" ]
+    CMD [ "sh","-c","/data/Dockerboot; cat" ]
 
 And put this in `data/Dockerboot`:
 
-		#!/bin/bash
-		export PROXY_PORT=8080
-		export WEBHOOK_PORT=8081
-		cp /srv/apps/playterm/lib/proxytable.js /srv/apps/proxytable.js
-		mongod &
-		/install/boot
-		su -c 'pm startall' nodejs 
+    #!/bin/bash
+    export PROXY_PORT=8080
+    export WEBHOOK_PORT=8081
+    cp /srv/apps/playterm/lib/proxytable.js /srv/apps/proxytable.js
+    mongod &
+    /install/boot
+    su -c 'pm startall' nodejs 

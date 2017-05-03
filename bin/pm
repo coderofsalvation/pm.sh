@@ -734,7 +734,7 @@ server:gitpull(){
   local appname="${1}"
   deffile=$(process:gettmpfile $appname).def
   workdir=$(apps:getworkdir $deffile)
-  if [[ -f $workdir/.git ]]; then
+  if [[ -w $workdir/.git ]]; then
     cd $workdir
     echo -e "$(date) received webhook: pull $appname, performing git pull"
     set +e

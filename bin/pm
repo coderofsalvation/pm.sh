@@ -734,7 +734,7 @@ server:gitpull(){
   local appname="${1}"
   deffile=$(process:gettmpfile $appname).def
   workdir=$(apps:getworkdir $deffile)
-  if [[ -d $workdir/.git ]]; then
+  if [[ -f $workdir/.git ]]; then
     cd $workdir
     echo -e "$(date) received webhook: pull $appname, performing git pull"
     set +e
@@ -812,9 +812,9 @@ app:init && $scope:$cmd "$@"
 
 
 # cleanup tmp files
-if ls /tmp/$(basename $0).tmp.sqz*; then
+if ls /tmp/$(basename $0).tmp.sqz* &>/dev/null; then
   for f in /tmp/$(basename $0).tmp.sqz*; do rm $f; done
-fi &>/dev/null
+fi
 
 exit 0
 

@@ -92,6 +92,18 @@ Or call from another service:
     $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/stop/app1
     $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/restart/app1
 
+## Trigger a dumb repository pull using webhook 
+
+    $ git clone https://github.com/foo/bar 
+    $ pm add $(pwd)/bar myapp 'tail -f /dev/null'
+    $ pm start myapp 
+
+Boom..now you have an app which actually does nothing ('tail -f /dev/null'), but will do a git pull after this call:
+    
+    $ curl -X POST -H 'Content-Type: application/json' http://localhost:8080/pull/myapp
+
+Easy peasy..
+
 ## Trigger a Dockercontainer rebuild using webhooks
 
 Here's a quick way to achieve this:
